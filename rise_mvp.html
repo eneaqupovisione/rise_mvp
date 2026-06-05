@@ -1,0 +1,2042 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>Rise — MVP</title>
+<link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;700&family=IM+Fell+English:ital@0;1&display=swap" rel="stylesheet">
+<style>
+/* ═══════════════════════════════════════════════
+   ROOT & TOKENS
+═══════════════════════════════════════════════ */
+:root {
+  --bg:#0d0d12; --surface:#141420; --surface2:#1c1c2c; --surface3:#242436;
+  --border:#2a2a40; --border-light:#3a3a55;
+  --text:#d4c9b0; --text-dim:#6a6080; --text-mid:#9a8f78;
+  --gold:#c9a84c; --gold-dim:#7a6030; --gold-light:#e8c87a;
+  --energy:#f0a030; --green:#4a9a5a; --green-dim:#2a5a34;
+  --red:#9a3030; --red-bright:#c06060; --red-dim:#5a1a1a;
+  --spirit:#c04040; --purple:#6b3fa0; --purple-light:#c080e0;
+  --blue:#4a7abf; --blue-dim:#2a3a5a; --zen:#4a9aba;
+  --node-bg:#181825; --overlay-bg:rgba(0,0,0,0.85);
+  --hp-color:#c04040; --nrg-color:#f0a030; --gold-color:#c9a84c; --gem-color:#4a7abf;
+}
+/* ─ reset ─ */
+*{margin:0;padding:0;box-sizing:border-box}
+html,body{height:100%;overflow:hidden}
+body{background:var(--bg);color:var(--text);font-family:'IM Fell English',serif;display:flex;flex-direction:column;max-width:480px;margin:0 auto;position:relative}
+body::before{content:'';position:fixed;inset:0;background:radial-gradient(ellipse at 50% 20%,rgba(107,63,160,0.05) 0%,transparent 65%);pointer-events:none;z-index:0}
+
+/* ═══════════════════════════════════════════════
+   HUD BAR
+═══════════════════════════════════════════════ */
+.hud-bar{display:flex;gap:5px;padding:10px 12px 8px;flex-shrink:0;border-bottom:1px solid var(--border);position:relative;z-index:1}
+.hud-pill{flex:1;background:var(--surface);border:1px solid var(--border);border-radius:2px;padding:5px 8px;display:flex;flex-direction:column;cursor:pointer;transition:border-color 0.2s;user-select:none;gap:2px}
+.hud-pill:hover{border-color:var(--border-light)}
+.hud-label{font-family:'Cinzel',serif;font-size:7px;letter-spacing:1.5px;text-transform:uppercase;color:var(--text-dim)}
+.hud-value{font-family:'Cinzel',serif;font-size:14px;font-weight:600;line-height:1}
+.hud-bar-track{height:2px;background:var(--surface3);border-radius:1px;overflow:hidden;margin-top:1px}
+.hud-bar-fill{height:100%;border-radius:1px;transition:width 0.5s}
+.hud-pill.hp .hud-value{color:var(--hp-color)}
+.hud-pill.hp .hud-bar-fill{background:var(--hp-color)}
+.hud-pill.nrg .hud-value{color:var(--nrg-color)}
+.hud-pill.nrg .hud-bar-fill{background:var(--nrg-color)}
+.hud-pill.gold .hud-value{color:var(--gold)}
+.hud-pill.gold .hud-bar-fill{background:var(--gold)}
+.hud-pill.gem .hud-value{color:var(--blue)}
+.hud-pill.gem .hud-bar-fill{background:var(--blue)}
+
+/* ═══════════════════════════════════════════════
+   NAV BAR
+═══════════════════════════════════════════════ */
+.nav-bar{display:flex;flex-shrink:0;border-top:1px solid var(--border);position:relative;z-index:1;background:var(--bg)}
+.nav-btn{flex:1;padding:8px 2px 10px;background:transparent;border-right:1px solid var(--border);font-family:'Cinzel',serif;font-size:6px;letter-spacing:1px;text-transform:uppercase;color:var(--text-dim);cursor:pointer;transition:all 0.15s;text-align:center;user-select:none;border-top:2px solid transparent}
+.nav-btn:last-child{border-right:none}
+.nav-btn:hover{color:var(--text);background:var(--surface)}
+.nav-btn.active{color:var(--gold);background:var(--node-bg);border-top-color:var(--gold)}
+.nav-icon{font-size:16px;display:block;margin-bottom:2px}
+.nav-badge{display:inline-block;background:var(--red);color:#fff;font-size:6px;border-radius:1px;padding:1px 3px;vertical-align:top;margin-left:2px;line-height:1.4}
+
+/* ═══════════════════════════════════════════════
+   VIEWS
+═══════════════════════════════════════════════ */
+.views-wrap{flex:1;overflow:hidden;display:flex;flex-direction:column;position:relative;z-index:1}
+.view{display:none;flex:1;flex-direction:column;overflow:hidden}
+.view.active{display:flex}
+.scroll-area{flex:1;overflow-y:auto;padding:12px 14px;display:flex;flex-direction:column;gap:8px}
+.scroll-area::-webkit-scrollbar{width:3px}
+.scroll-area::-webkit-scrollbar-thumb{background:var(--border)}
+
+/* ═══════════════════════════════════════════════
+   SECTION HEADERS
+═══════════════════════════════════════════════ */
+.sec-head{font-family:'Cinzel',serif;font-size:8px;letter-spacing:3px;text-transform:uppercase;color:var(--text-dim);padding:4px 0 2px;display:flex;align-items:center;gap:8px}
+.sec-head::after{content:'';flex:1;height:1px;background:var(--border)}
+.view-header{padding:10px 14px 8px;display:flex;align-items:center;justify-content:space-between;flex-shrink:0;border-bottom:1px solid var(--border)}
+.view-title{font-family:'Cinzel',serif;font-size:14px;color:var(--text);letter-spacing:1px}
+.view-sub{font-family:'Cinzel',serif;font-size:8px;letter-spacing:2px;text-transform:uppercase;color:var(--text-dim)}
+
+/* ═══════════════════════════════════════════════
+   TABS (inner)
+═══════════════════════════════════════════════ */
+.inner-tabs{display:flex;border-bottom:1px solid var(--border);flex-shrink:0}
+.inner-tab{flex:1;padding:8px 4px;text-align:center;font-family:'Cinzel',serif;font-size:7px;letter-spacing:2px;text-transform:uppercase;color:var(--text-dim);cursor:pointer;transition:all 0.15s;border-bottom:2px solid transparent;user-select:none}
+.inner-tab.active{color:var(--text);border-bottom-color:var(--gold)}
+.inner-tab:hover:not(.active){color:var(--text-mid)}
+.itab-content{display:none;flex:1;flex-direction:column;overflow:hidden}
+.itab-content.active{display:flex}
+
+/* ═══════════════════════════════════════════════
+   CARDS — generic
+═══════════════════════════════════════════════ */
+.card{background:var(--surface);border:1px solid var(--border);border-radius:2px;overflow:hidden;transition:border-color 0.18s}
+.card-body{padding:12px 14px}
+.card-row{display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid var(--border)}
+.card-row:last-child{border-bottom:none}
+.row-icon{font-size:17px;width:24px;text-align:center;flex-shrink:0}
+.row-info{flex:1}
+.row-name{font-family:'Cinzel',serif;font-size:11px;color:var(--text)}
+.row-sub{font-size:10px;color:var(--text-dim);font-style:italic;margin-top:2px}
+.row-sub .pos{color:var(--green)} .row-sub .neg{color:var(--red-bright)}
+.pill-badge{font-family:'Cinzel',serif;font-size:7px;letter-spacing:1px;padding:2px 6px;border-radius:1px;text-transform:uppercase;display:inline-block}
+.badge-gold{background:rgba(201,168,76,0.1);color:var(--gold);border:1px solid var(--gold-dim)}
+.badge-red{background:rgba(154,48,48,0.15);color:var(--red-bright);border:1px solid var(--red-dim)}
+.badge-purple{background:rgba(107,63,160,0.15);color:var(--purple-light);border:1px solid #3a1a3a}
+.badge-blue{background:rgba(74,122,191,0.15);color:#7aabdf;border:1px solid var(--blue-dim)}
+.badge-green{background:rgba(74,154,90,0.1);color:var(--green);border:1px solid var(--green-dim)}
+.badge-zen{background:rgba(74,154,186,0.1);color:var(--zen);border:1px solid rgba(74,154,186,0.3)}
+
+/* left accent bar */
+.acc-bar{position:absolute;left:0;top:0;bottom:0;width:3px}
+.acc-corpo{background:#e06040} .acc-mente{background:var(--blue)} .acc-anima{background:var(--zen)} .acc-portafoglio{background:var(--gold)}
+.acc-done{background:var(--green-dim)} .acc-late{background:var(--red)} .acc-purple{background:var(--purple)}
+
+/* progress bars */
+.bar-row{display:flex;align-items:center;gap:8px;margin:6px 0 2px}
+.bar-lbl{font-family:'Cinzel',serif;font-size:7px;letter-spacing:1px;text-transform:uppercase;color:var(--text-dim);width:38px;flex-shrink:0}
+.bar-track{flex:1;height:4px;background:var(--surface3);border-radius:1px;overflow:hidden}
+.bar-fill{height:100%;border-radius:1px;transition:width 0.5s}
+.bar-fill.hp{background:var(--hp-color)} .bar-fill.nrg{background:var(--nrg-color)}
+.bar-fill.gold{background:var(--gold)} .bar-fill.gem{background:var(--blue)}
+.bar-fill.corpo{background:#e06040} .bar-fill.mente{background:var(--blue)}
+.bar-fill.anima{background:var(--zen)} .bar-fill.portafoglio{background:var(--gold)}
+.bar-fill.purple{background:var(--purple)} .bar-fill.green{background:var(--green)}
+.bar-val{font-family:'Cinzel',serif;font-size:9px;color:var(--text-dim);width:26px;text-align:right}
+
+/* counter controls */
+.ctrl-row{display:flex;align-items:center;gap:6px}
+.ctrl-btn{width:22px;height:22px;background:var(--surface2);border:1px solid var(--border);border-radius:1px;display:flex;align-items:center;justify-content:center;font-size:14px;cursor:pointer;color:var(--text-dim);transition:all 0.15s;user-select:none}
+.ctrl-btn:hover{border-color:var(--gold-dim);color:var(--gold)}
+.ctrl-val{font-family:'Cinzel',serif;font-size:13px;color:var(--text);min-width:24px;text-align:center}
+
+/* add/action buttons */
+.btn-ghost{width:100%;padding:10px;background:transparent;border:1px dashed var(--border);border-radius:2px;font-family:'Cinzel',serif;font-size:9px;letter-spacing:2px;text-transform:uppercase;color:var(--text-dim);cursor:pointer;transition:all 0.2s;display:flex;align-items:center;justify-content:center;gap:8px}
+.btn-ghost:hover{border-color:var(--purple);color:var(--purple-light)}
+.btn-main{width:100%;padding:10px;background:transparent;border:1px solid var(--gold-dim);border-radius:1px;font-family:'Cinzel',serif;font-size:9px;letter-spacing:2px;text-transform:uppercase;color:var(--gold);cursor:pointer;transition:all 0.2s}
+.btn-main:hover{background:rgba(201,168,76,0.08)}
+.btn-main:disabled{opacity:0.3;cursor:not-allowed;border-color:var(--border)}
+.btn-red{border-color:var(--red-dim);color:var(--red-bright)}
+.btn-red:hover{background:rgba(154,48,48,0.08)}
+.btn-purple{border-color:#3a1a3a;color:var(--purple-light)}
+.btn-purple:hover{background:rgba(107,63,160,0.1)}
+
+/* form elements */
+.form-lbl{font-family:'Cinzel',serif;font-size:8px;letter-spacing:2px;text-transform:uppercase;color:var(--text-dim);margin-bottom:4px;display:block}
+.form-inp{width:100%;background:var(--surface2);border:1px solid var(--border);border-radius:1px;padding:8px 10px;color:var(--text);font-family:'IM Fell English',serif;font-size:13px;outline:none;transition:border-color 0.2s}
+.form-inp:focus{border-color:var(--border-light)}
+.form-sel{width:100%;background:var(--surface2);border:1px solid var(--border);border-radius:1px;padding:8px 10px;color:var(--text);font-family:'Cinzel',serif;font-size:9px;outline:none;cursor:pointer}
+.form-row{display:flex;gap:8px}
+.form-row > *{flex:1}
+.form-btns{display:flex;gap:8px;margin-top:4px}
+.form-btn{flex:1;padding:9px;border:1px solid;border-radius:1px;font-family:'Cinzel',serif;font-size:9px;letter-spacing:1px;text-transform:uppercase;cursor:pointer;transition:all 0.2s;background:transparent}
+.form-btn.ok{border-color:var(--purple);color:var(--purple-light)}
+.form-btn.ok:hover{background:rgba(107,63,160,0.1)}
+.form-btn.no{border-color:var(--border);color:var(--text-dim)}
+.form-group{display:flex;flex-direction:column;gap:4px}
+.add-form{background:var(--surface);border:1px solid var(--border);border-radius:2px;padding:14px;display:none;flex-direction:column;gap:10px}
+.add-form.open{display:flex}
+
+/* ═══════════════════════════════════════════════
+   VARCHI / CHALLENGES
+═══════════════════════════════════════════════ */
+.varco{background:var(--surface);border:1px solid var(--border);border-radius:2px;overflow:hidden;cursor:pointer;transition:all 0.18s;position:relative}
+.varco:hover{border-color:var(--border-light);background:var(--surface2)}
+.varco.done{background:#111a11;border-color:#2a3a2a;opacity:0.55}
+.varco.late{border-color:var(--red-dim);background:#180f0f}
+.varco.anfratto{border-color:#3a1a3a;animation:pulse-anf 2.5s ease-in-out infinite}
+@keyframes pulse-anf{0%,100%{box-shadow:0 0 0 0 rgba(107,63,160,0)}50%{box-shadow:0 0 10px 2px rgba(107,63,160,0.18)}}
+.varco-body{padding:11px 13px 11px 18px;display:flex;align-items:center;gap:10px}
+.varco-icon{font-size:18px;width:26px;text-align:center;flex-shrink:0}
+.varco-info{flex:1}
+.varco-name{font-family:'Cinzel',serif;font-size:12px;color:var(--text);line-height:1.3}
+.varco-meta{display:flex;gap:5px;align-items:center;margin-top:4px;flex-wrap:wrap}
+.varco-tag{font-family:'Cinzel',serif;font-size:7px;letter-spacing:1px;padding:2px 6px;border-radius:1px;text-transform:uppercase}
+.varco-right{display:flex;flex-direction:column;align-items:flex-end;gap:3px}
+.varco-loot{font-family:'Cinzel',serif;font-size:10px;color:var(--gold)}
+.varco-time{font-size:9px;color:var(--text-dim);font-style:italic}
+
+/* ═══════════════════════════════════════════════
+   MOSTRI
+═══════════════════════════════════════════════ */
+.mostro{background:var(--surface);border:1px solid #2a1a1a;border-radius:2px;overflow:hidden;position:relative;animation:appear-m 0.4s cubic-bezier(0.16,1,0.3,1)}
+@keyframes appear-m{from{opacity:0;transform:translateX(-8px)}to{opacity:1;transform:translateX(0)}}
+.mostro.r-win{border-color:#2a3a2a;opacity:0.5} .mostro.r-lose{border-color:#3a1a1a;opacity:0.5}
+.mostro.sentinella{border-color:#5a1a1a;animation:pulse-sent 1.8s ease-in-out infinite}
+@keyframes pulse-sent{0%,100%{box-shadow:0 0 0 0 rgba(154,48,48,0)}50%{box-shadow:0 0 10px 2px rgba(154,48,48,0.2)}}
+.mo-body{padding:11px 13px 11px 18px}
+.mo-top{display:flex;align-items:flex-start;gap:10px;margin-bottom:6px}
+.mo-icon{font-size:20px;width:26px;text-align:center;flex-shrink:0}
+.mo-name{font-family:'Cinzel',serif;font-size:12px;color:var(--red-bright);line-height:1.3}
+.mo-name.sent{color:#e08040}
+.mo-desc{font-size:10px;color:var(--text-dim);font-style:italic;margin-top:3px;line-height:1.4}
+.mo-btns{display:flex;gap:6px;margin-top:8px}
+.mo-btn{flex:1;padding:7px;background:transparent;border:1px solid;border-radius:1px;font-family:'Cinzel',serif;font-size:8px;letter-spacing:1px;text-transform:uppercase;cursor:pointer;transition:all 0.15s}
+.mo-btn.win{border-color:var(--green-dim);color:var(--green)}
+.mo-btn.win:hover{background:rgba(74,154,90,0.1)}
+.mo-btn.lose{border-color:var(--red-dim);color:var(--red-bright)}
+.mo-btn.lose:hover{background:rgba(154,48,48,0.1)}
+
+/* ═══════════════════════════════════════════════
+   STREGONE OVERLAY
+═══════════════════════════════════════════════ */
+.overlay{position:fixed;inset:0;z-index:200;background:rgba(0,0,0,0);pointer-events:none;transition:background 0.3s;display:flex;align-items:center;justify-content:center}
+.overlay.active{background:var(--overlay-bg);pointer-events:all}
+.overlay-panel{width:92%;max-width:360px;max-height:88vh;overflow-y:auto;background:var(--surface);border:1px solid var(--border);border-radius:2px;opacity:0;transform:scale(0.94) translateY(16px);transition:opacity 0.35s cubic-bezier(0.16,1,0.3,1),transform 0.35s cubic-bezier(0.16,1,0.3,1)}
+.overlay.active .overlay-panel{opacity:1;transform:scale(1) translateY(0)}
+.overlay-panel::-webkit-scrollbar{width:3px}
+.overlay-panel::-webkit-scrollbar-thumb{background:var(--border)}
+.ov-head{padding:20px 18px 14px;text-align:center;border-bottom:1px solid var(--border);position:relative}
+.ov-close{position:absolute;top:12px;left:14px;background:none;border:none;color:var(--text-dim);font-family:'Cinzel',serif;font-size:13px;cursor:pointer;padding:4px}
+.ov-close:hover{color:var(--text)}
+.ov-title{font-family:'Cinzel',serif;font-size:16px;color:var(--text);letter-spacing:1px}
+.ov-sub{font-size:11px;color:var(--text-dim);font-style:italic;margin-top:4px}
+.ov-body{padding:10px 16px 16px}
+
+/* bottom sheet */
+.sheet-ov{position:fixed;inset:0;z-index:200;background:rgba(0,0,0,0);pointer-events:none;transition:background 0.3s;display:flex;align-items:flex-end;justify-content:center}
+.sheet-ov.active{background:var(--overlay-bg);pointer-events:all}
+.sheet-pan{width:100%;max-width:480px;background:var(--surface);border:1px solid var(--border);border-radius:2px 2px 0 0;padding:20px 18px 28px;transform:translateY(100%);transition:transform 0.35s cubic-bezier(0.16,1,0.3,1);max-height:82vh;overflow-y:auto}
+.sheet-ov.active .sheet-pan{transform:translateY(0)}
+.sheet-pan::-webkit-scrollbar{width:3px}
+.sheet-pan::-webkit-scrollbar-thumb{background:var(--border)}
+.sh-handle{width:32px;height:3px;background:var(--border);border-radius:2px;margin:0 auto 16px}
+.sh-title{font-family:'Cinzel',serif;font-size:15px;color:var(--text);margin-bottom:4px}
+.sh-sub{font-size:11px;color:var(--text-dim);font-style:italic;margin-bottom:16px}
+.sh-sec{font-family:'Cinzel',serif;font-size:8px;letter-spacing:2px;text-transform:uppercase;color:var(--text-dim);padding:10px 0 6px;border-top:1px solid var(--border);margin-top:4px}
+
+/* ═══════════════════════════════════════════════
+   TOAST / NOTIFICATION
+═══════════════════════════════════════════════ */
+#toast{position:fixed;bottom:70px;left:50%;transform:translateX(-50%);background:var(--surface2);border:1px solid var(--border);border-radius:2px;padding:8px 16px;font-family:'Cinzel',serif;font-size:10px;letter-spacing:1px;color:var(--text);z-index:999;opacity:0;transition:opacity 0.3s;pointer-events:none;white-space:nowrap}
+#toast.show{opacity:1}
+
+/* ═══════════════════════════════════════════════
+   DEV PANEL BUTTON
+═══════════════════════════════════════════════ */
+#dev-trigger{position:fixed;top:10px;right:10px;z-index:500;background:rgba(107,63,160,0.2);border:1px solid #3a1a3a;border-radius:2px;padding:5px 9px;font-family:'Cinzel',serif;font-size:7px;letter-spacing:1px;color:var(--purple-light);cursor:pointer;transition:all 0.2s}
+#dev-trigger:hover{background:rgba(107,63,160,0.35)}
+
+/* ═══════════════════════════════════════════════
+   DEV PANEL (overlay)
+═══════════════════════════════════════════════ */
+#dev-overlay{position:fixed;inset:0;z-index:1000;background:rgba(0,0,0,0.92);overflow-y:auto;display:none;padding:16px 14px 40px}
+#dev-overlay.active{display:block}
+.dev-header{display:flex;align-items:center;justify-content:space-between;padding:0 0 14px;border-bottom:1px solid var(--border);margin-bottom:16px;position:sticky;top:0;background:rgba(13,13,18,0.98);z-index:2;padding-top:4px}
+.dev-title{font-family:'Cinzel',serif;font-size:16px;color:var(--purple-light);letter-spacing:2px}
+.dev-close{background:none;border:1px solid #3a1a3a;border-radius:2px;padding:6px 12px;font-family:'Cinzel',serif;font-size:9px;letter-spacing:1px;color:var(--purple-light);cursor:pointer}
+.dev-section{margin-bottom:20px}
+.dev-section-title{font-family:'Cinzel',serif;font-size:9px;letter-spacing:3px;text-transform:uppercase;color:var(--gold);padding:6px 0 8px;border-bottom:1px solid var(--border);margin-bottom:10px;display:flex;align-items:center;gap:8px}
+.dev-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.dev-grid-3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px}
+.dev-field{background:var(--surface);border:1px solid var(--border);border-radius:2px;padding:10px 12px}
+.dev-field-lbl{font-family:'Cinzel',serif;font-size:7px;letter-spacing:1.5px;text-transform:uppercase;color:var(--text-dim);margin-bottom:6px;display:block}
+.dev-inp{width:100%;background:var(--surface2);border:1px solid var(--border);border-radius:1px;padding:6px 8px;color:var(--text);font-family:'Cinzel',serif;font-size:12px;outline:none;transition:border-color 0.2s}
+.dev-inp:focus{border-color:var(--purple)}
+.dev-inp[type=range]{padding:4px 0;cursor:pointer;accent-color:var(--purple)}
+.dev-note{font-size:10px;color:var(--text-dim);font-style:italic;padding:8px 10px;background:var(--surface);border:1px solid var(--border);border-radius:2px;line-height:1.5;margin-bottom:10px}
+.dev-save-bar{position:sticky;bottom:0;background:rgba(13,13,18,0.98);padding:12px 0 4px;display:flex;gap:8px;margin-top:10px}
+.dev-save{flex:1;padding:11px;background:rgba(107,63,160,0.15);border:1px solid var(--purple);border-radius:1px;font-family:'Cinzel',serif;font-size:10px;letter-spacing:2px;text-transform:uppercase;color:var(--purple-light);cursor:pointer;transition:all 0.2s}
+.dev-save:hover{background:rgba(107,63,160,0.25)}
+.dev-reset{padding:11px 18px;background:transparent;border:1px solid var(--border);border-radius:1px;font-family:'Cinzel',serif;font-size:10px;letter-spacing:1px;color:var(--text-dim);cursor:pointer}
+
+/* ═══════════════════════════════════════════════
+   STATO / EFFECTS chips
+═══════════════════════════════════════════════ */
+.stato-chip{display:inline-flex;align-items:center;gap:4px;padding:3px 8px;border-radius:1px;font-family:'Cinzel',serif;font-size:7px;letter-spacing:1px;text-transform:uppercase;margin:2px}
+.stato-chip.neg{background:rgba(154,48,48,0.15);color:var(--red-bright);border:1px solid var(--red-dim)}
+.stato-chip.pos{background:rgba(74,154,90,0.12);color:var(--green);border:1px solid var(--green-dim)}
+.stato-chip.neutral{background:rgba(201,168,76,0.1);color:var(--gold);border:1px solid var(--gold-dim)}
+.stato-chip.curse{background:rgba(107,63,160,0.15);color:var(--purple-light);border:1px solid #3a1a3a}
+
+/* ═══════════════════════════════════════════════
+   LOCANDA items
+═══════════════════════════════════════════════ */
+.loc-item{background:var(--surface);border:1px solid var(--border);border-radius:2px;padding:10px 14px}
+.loc-item-head{display:flex;align-items:center;gap:8px;margin-bottom:6px}
+.loc-item-icon{font-size:18px;width:24px;text-align:center}
+.loc-item-name{font-family:'Cinzel',serif;font-size:11px;color:var(--text);flex:1}
+.loc-item-effect{font-size:10px;color:var(--text-dim);font-style:italic;margin-top:1px}
+.loc-thresholds{display:flex;gap:4px;margin-top:6px;font-family:'Cinzel',serif;font-size:8px}
+.loc-thr{padding:2px 6px;border-radius:1px}
+.loc-thr.min{background:rgba(154,48,48,0.1);color:var(--red-bright);border:1px solid var(--red-dim)}
+.loc-thr.ideal{background:rgba(74,154,90,0.1);color:var(--green);border:1px solid var(--green-dim)}
+
+/* ═══════════════════════════════════════════════
+   EMPORIO items
+═══════════════════════════════════════════════ */
+.emp-item{background:var(--surface);border:1px solid var(--border);border-radius:2px;overflow:hidden;transition:border-color 0.18s;cursor:pointer}
+.emp-item:hover{border-color:var(--border-light)}
+.emp-item.locked{opacity:0.5;cursor:not-allowed}
+.emp-item.unlocked{border-color:var(--gold-dim)}
+.emp-body{padding:12px 14px}
+.emp-name{font-family:'Cinzel',serif;font-size:13px;color:var(--text)}
+.emp-desc{font-size:10px;color:var(--text-dim);font-style:italic;margin-top:3px}
+.emp-price{font-family:'Cinzel',serif;font-size:14px;color:var(--gold);margin-top:8px;display:flex;align-items:center;gap:5px}
+.emp-price-label{font-size:10px;color:var(--text-dim);margin-left:2px}
+
+/* ═══════════════════════════════════════════════
+   AVATAR / PILLAR cards
+═══════════════════════════════════════════════ */
+.pillar-card{background:var(--surface);border:1px solid var(--border);border-radius:2px;padding:12px 14px;display:flex;align-items:center;gap:12px}
+.pillar-icon{font-size:26px;width:36px;text-align:center;flex-shrink:0}
+.pillar-info{flex:1}
+.pillar-name{font-family:'Cinzel',serif;font-size:12px;color:var(--text)}
+.pillar-lv{font-family:'Cinzel',serif;font-size:10px;color:var(--text-dim);margin-top:2px}
+.pillar-xp{font-family:'Cinzel',serif;font-size:11px;color:var(--gold);text-align:right;flex-shrink:0}
+
+/* ═══════════════════════════════════════════════
+   STREGONE items
+═══════════════════════════════════════════════ */
+.st-item{background:var(--surface2);border:1px solid var(--border);border-radius:2px;padding:12px 14px;margin-bottom:6px;cursor:pointer;transition:all 0.18s}
+.st-item:hover{border-color:var(--gold-dim)}
+.st-item-top{display:flex;align-items:center;gap:10px}
+.st-ico{font-size:18px;width:26px;text-align:center;flex-shrink:0}
+.st-info{flex:1}
+.st-name{font-family:'Cinzel',serif;font-size:12px;color:var(--text);display:flex;align-items:center;gap:6px}
+.st-desc{font-size:11px;color:var(--text-dim);font-style:italic;margin-top:2px}
+.st-price{font-family:'Cinzel',serif;font-size:13px;color:var(--gold);flex-shrink:0}
+.st-body{display:none;padding:10px 0 4px;margin-top:8px;border-top:1px solid var(--border)}
+.st-body.open{display:block}
+.st-buy{width:100%;padding:8px;background:transparent;border:1px solid var(--gold-dim);border-radius:1px;font-family:'Cinzel',serif;font-size:9px;letter-spacing:2px;text-transform:uppercase;color:var(--gold);cursor:pointer;transition:all 0.2s;margin-top:8px}
+.st-buy:hover{background:rgba(201,168,76,0.1)}
+
+/* ═══════════════════════════════════════════════
+   FORMULA MAGICA
+═══════════════════════════════════════════════ */
+.formula-card{background:var(--surface);border:1px solid var(--border);border-radius:2px;overflow:hidden}
+.fo-head{padding:12px 14px;display:flex;align-items:center;gap:10px;cursor:pointer;transition:background 0.15s}
+.fo-head:hover{background:var(--surface2)}
+.fo-icon{font-size:20px;width:26px;text-align:center;flex-shrink:0}
+.fo-info{flex:1}
+.fo-name{font-family:'Cinzel',serif;font-size:12px;color:var(--text)}
+.fo-dur{font-size:10px;color:var(--text-dim);font-style:italic;margin-top:2px}
+.fo-body{display:none;padding:10px 14px 14px;border-top:1px solid var(--border)}
+.fo-body.open{display:block}
+.fo-activate{width:100%;padding:9px;background:transparent;border:1px solid var(--zen);border-radius:1px;font-family:'Cinzel',serif;font-size:9px;letter-spacing:2px;text-transform:uppercase;color:var(--zen);cursor:pointer;transition:all 0.2s;margin-top:8px}
+.fo-activate:hover{background:rgba(74,154,186,0.1)}
+
+/* ═══════════════════════════════════════════════
+   WEEK PLANNER
+═══════════════════════════════════════════════ */
+.week-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:3px;margin-bottom:10px}
+.day-cell{background:var(--surface);border:1px solid var(--border);border-radius:2px;padding:5px 3px;text-align:center;cursor:pointer;transition:all 0.15s}
+.day-cell:hover{border-color:var(--border-light)}
+.day-cell.today{border-color:var(--gold-dim);background:rgba(201,168,76,0.05)}
+.day-cell.selected{border-color:var(--purple);background:rgba(107,63,160,0.1)}
+.day-name{font-family:'Cinzel',serif;font-size:7px;letter-spacing:1px;color:var(--text-dim);text-transform:uppercase}
+.day-num{font-family:'Cinzel',serif;font-size:13px;color:var(--text);margin-top:1px}
+.day-dots{display:flex;justify-content:center;gap:2px;margin-top:3px}
+.day-dot{width:4px;height:4px;border-radius:50%;background:var(--border)}
+.day-dot.filled{background:var(--gold)}
+
+/* ═══════════════════════════════════════════════
+   NOTIFICHE / STATO ATTIVO chips row
+═══════════════════════════════════════════════ */
+.stati-row{display:flex;flex-wrap:wrap;gap:4px;padding:8px 14px;border-bottom:1px solid var(--border);flex-shrink:0;background:rgba(26,26,38,0.8)}
+.stati-row:empty{display:none}
+
+/* ═══════════════════════════════════════════════
+   IGIENE items
+═══════════════════════════════════════════════ */
+.igiene-item{background:var(--surface);border:1px solid var(--border);border-radius:2px;padding:10px 14px;display:flex;align-items:center;gap:10px}
+.ig-info{flex:1}
+.ig-name{font-family:'Cinzel',serif;font-size:11px;color:var(--text)}
+.ig-meta{font-size:10px;color:var(--text-dim);font-style:italic;margin-top:2px}
+.ig-btn{padding:6px 12px;background:transparent;border:1px solid var(--green-dim);border-radius:1px;font-family:'Cinzel',serif;font-size:8px;letter-spacing:1px;color:var(--green);cursor:pointer;transition:all 0.15s;text-transform:uppercase}
+.ig-btn:hover{background:rgba(74,154,90,0.1)}
+.ig-btn:disabled{opacity:0.3;cursor:not-allowed}
+
+/* ═══════════════════════════════════════════════
+   RESPONSIVE ANIMATIONS
+═══════════════════════════════════════════════ */
+@keyframes fadeIn{from{opacity:0}to{opacity:1}}
+@keyframes slideUp{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
+.view.active{animation:fadeIn 0.25s ease}
+</style>
+</head>
+<body>
+
+<!-- ██████  HUD BAR  ██████ -->
+<div class="hud-bar">
+  <div class="hud-pill hp" onclick="openSheet('hud-hp')">
+    <span class="hud-label">❤ HP</span>
+    <span class="hud-value" id="hud-hp-val">85</span>
+    <div class="hud-bar-track"><div class="hud-bar-fill hp" id="hud-hp-bar" style="width:85%"></div></div>
+  </div>
+  <div class="hud-pill nrg" onclick="openSheet('hud-nrg')">
+    <span class="hud-label">⚡ NRG</span>
+    <span class="hud-value" id="hud-nrg-val">72</span>
+    <div class="hud-bar-track"><div class="hud-bar-fill nrg" id="hud-nrg-bar" style="width:72%"></div></div>
+  </div>
+  <div class="hud-pill gold" onclick="openSheet('hud-gold')">
+    <span class="hud-label">◈ Monete</span>
+    <span class="hud-value" id="hud-gold-val">340</span>
+    <div class="hud-bar-track"><div class="hud-bar-fill gold" id="hud-gold-bar" style="width:34%"></div></div>
+  </div>
+  <div class="hud-pill gem">
+    <span class="hud-label">◆ Gemme</span>
+    <span class="hud-value" id="hud-gem-val">12</span>
+    <div class="hud-bar-track"><div class="hud-bar-fill gem" id="hud-gem-bar" style="width:12%"></div></div>
+  </div>
+</div>
+
+<!-- stati attivi -->
+<div class="stati-row" id="stati-row"></div>
+
+<!-- ██████  VIEWS  ██████ -->
+<div class="views-wrap">
+
+  <!-- ══════  1. OGGI  ══════ -->
+  <div class="view active" id="view-oggi">
+    <div class="view-header">
+      <div>
+        <div class="view-sub">Dungeon — Settimana I</div>
+        <div class="view-title">Il Piano del Giorno</div>
+      </div>
+      <div class="pill-badge badge-gold" id="oggi-piano">Piano 3 / 7</div>
+    </div>
+    <div class="inner-tabs">
+      <div class="inner-tab active" onclick="switchITab('oggi','varchi')">Varchi <span class="nav-badge" id="badge-varchi">4</span></div>
+      <div class="inner-tab" onclick="switchITab('oggi','mostri')">Mostri <span class="nav-badge" id="badge-mostri">2</span></div>
+      <div class="inner-tab" onclick="switchITab('oggi','boss')">Boss</div>
+    </div>
+    <!-- VARCHI tab -->
+    <div class="itab-content active" id="oggi-varchi">
+      <div class="scroll-area" id="varchi-list">
+        <div class="sec-head">Corpo</div>
+        <!-- varco generato da JS -->
+      </div>
+    </div>
+    <!-- MOSTRI tab -->
+    <div class="itab-content" id="oggi-mostri">
+      <div class="scroll-area" id="mostri-list"></div>
+    </div>
+    <!-- BOSS tab -->
+    <div class="itab-content" id="oggi-boss">
+      <div class="scroll-area" id="boss-list">
+        <div class="sec-head">Boss attivi</div>
+        <div class="card"><div class="card-body">
+          <div style="display:flex;align-items:center;gap:10px">
+            <span style="font-size:22px">👁️</span>
+            <div style="flex:1">
+              <div class="row-name">L'Esame di Fine Mese</div>
+              <div class="row-sub">Scadenza fissa · <span class="neg">tra 12 giorni</span></div>
+            </div>
+            <span class="pill-badge badge-purple">Boss</span>
+          </div>
+          <div class="bar-row"><div class="bar-lbl">Prog.</div><div class="bar-track"><div class="bar-fill purple" style="width:45%"></div></div><div class="bar-val">45%</div></div>
+          <div style="margin-top:8px;font-size:10px;color:var(--text-dim);font-style:italic">Superarlo: Achievement + Buff Mente · Fallire: Sigillo Maledetto</div>
+        </div></div>
+        <div class="sec-head" style="margin-top:4px">Obiettivi (Endogeni)</div>
+        <div class="card"><div class="card-body">
+          <div style="display:flex;align-items:center;gap:10px">
+            <span style="font-size:22px">💪</span>
+            <div style="flex:1">
+              <div class="row-name">Consistenza Allenamento</div>
+              <div class="row-sub">Soglia raggiunta dopo 21 giorni di fila</div>
+            </div>
+            <span class="pill-badge badge-green">Obiettivo</span>
+          </div>
+          <div class="bar-row"><div class="bar-lbl">Giorni</div><div class="bar-track"><div class="bar-fill green" style="width:33%"></div></div><div class="bar-val">7/21</div></div>
+        </div></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══════  2. SETTIMANA  ══════ -->
+  <div class="view" id="view-settimana">
+    <div class="view-header">
+      <div>
+        <div class="view-sub">Pianificazione</div>
+        <div class="view-title">La Settimana</div>
+      </div>
+      <button class="pill-badge badge-gold" style="cursor:pointer;background:transparent;border:1px solid var(--gold-dim)" onclick="openAddVarco()">+ Varco</button>
+    </div>
+    <div class="scroll-area">
+      <div class="week-grid" id="week-grid"></div>
+      <div class="sec-head">Routine Settimanale</div>
+      <div id="routine-list"></div>
+      <button class="btn-ghost" onclick="openAddVarco()">＋ Aggiungi attività ricorrente</button>
+    </div>
+  </div>
+
+  <!-- ══════  3. LOCANDA  ══════ -->
+  <div class="view" id="view-locanda">
+    <div class="view-header">
+      <div>
+        <div class="view-sub">Ristoro & Ordine</div>
+        <div class="view-title">La Locanda</div>
+      </div>
+      <div id="locanda-order-badge" class="pill-badge badge-gold">Ordine 70%</div>
+    </div>
+    <div class="scroll-area">
+      <div class="sec-head">Alimentazione</div>
+      <div id="locanda-food-list"></div>
+      <div class="sec-head" style="margin-top:4px">Riposo</div>
+      <div id="locanda-sleep-list"></div>
+      <div class="sec-head" style="margin-top:4px">Ordine & Pulizia</div>
+      <div id="locanda-order-list"></div>
+      <div class="sec-head" style="margin-top:4px">Igiene Personale</div>
+      <div id="locanda-igiene-list"></div>
+      <button class="btn-main" style="margin-top:8px" onclick="saveLocanda()">Conferma Giornata</button>
+    </div>
+  </div>
+
+  <!-- ══════  4. STREGONE  ══════ -->
+  <div class="view" id="view-stregone">
+    <div class="view-header">
+      <div>
+        <div class="view-sub">Evocazioni & Formule</div>
+        <div class="view-title">Lo Stregone</div>
+      </div>
+      <div class="pill-badge badge-purple" id="evo-count">Evo: 2/3</div>
+    </div>
+    <div class="inner-tabs">
+      <div class="inner-tab active" onclick="switchITab('stregone','evocazioni')">Evocazioni</div>
+      <div class="inner-tab" onclick="switchITab('stregone','formule')">Formule Magiche</div>
+      <div class="inner-tab" onclick="switchITab('stregone','inventario')">Inventario</div>
+    </div>
+    <div class="itab-content active" id="stregone-evocazioni">
+      <div class="scroll-area" id="evocazioni-list"></div>
+    </div>
+    <div class="itab-content" id="stregone-formule">
+      <div class="scroll-area" id="formule-list"></div>
+    </div>
+    <div class="itab-content" id="stregone-inventario">
+      <div class="scroll-area" id="inventario-list">
+        <div class="dev-note">Gli artefici acquistati dallo stregone appaiono qui. Usali quando vuoi.</div>
+        <div id="inv-items"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══════  5. AVATAR  ══════ -->
+  <div class="view" id="view-avatar">
+    <div class="view-header">
+      <div>
+        <div class="view-sub">Il tuo Eroe</div>
+        <div class="view-title">Avatar</div>
+      </div>
+    </div>
+    <div class="scroll-area">
+      <!-- Pillars -->
+      <div class="sec-head">Pilastri</div>
+      <div id="pillars-list"></div>
+      <!-- Sigilli & Poteri -->
+      <div class="sec-head" style="margin-top:4px">Poteri Celesti</div>
+      <div id="poteri-list"><div class="dev-note">Nessun potere attivo. Sconfiggi un boss per ottenerli.</div></div>
+      <div class="sec-head" style="margin-top:4px">Sigilli Maledetti</div>
+      <div id="sigilli-list"><div class="dev-note">Nessun sigillo attivo.</div></div>
+      <div class="sec-head" style="margin-top:4px">Cambiamenti di Stato</div>
+      <div id="stati-list"></div>
+      <div class="sec-head" style="margin-top:4px">Achievements</div>
+      <div id="achievements-list"><div class="dev-note">Nessun achievement ancora. Combatti!</div></div>
+    </div>
+  </div>
+
+  <!-- ══════  6. EMPORIO  ══════ -->
+  <div class="view" id="view-emporio">
+    <div class="view-header">
+      <div>
+        <div class="view-sub">Ricompense Reali</div>
+        <div class="view-title">L'Emporio</div>
+      </div>
+      <div class="pill-badge badge-gold">◈ <span id="emp-balance">340</span></div>
+    </div>
+    <div class="scroll-area" id="emporio-list"></div>
+  </div>
+
+</div><!-- end views-wrap -->
+
+<!-- ██████  NAV BAR  ██████ -->
+<div class="nav-bar">
+  <div class="nav-btn active" onclick="switchView('oggi',this)"><span class="nav-icon">⚔️</span>Oggi</div>
+  <div class="nav-btn" onclick="switchView('settimana',this)"><span class="nav-icon">📅</span>Settimana</div>
+  <div class="nav-btn" onclick="switchView('locanda',this)"><span class="nav-icon">🍺</span>Locanda</div>
+  <div class="nav-btn" onclick="switchView('stregone',this)"><span class="nav-icon">🧙</span>Stregone</div>
+  <div class="nav-btn" onclick="switchView('avatar',this)"><span class="nav-icon">🧝</span>Avatar</div>
+  <div class="nav-btn" onclick="switchView('emporio',this)"><span class="nav-icon">🏪</span>Emporio</div>
+</div>
+
+<!-- ██████  DEV TRIGGER  ██████ -->
+<button id="dev-trigger" onclick="openDevPanel()">⚙ DEV</button>
+
+<!-- ██████  TOAST  ██████ -->
+<div id="toast"></div>
+
+<!-- ══════════════════════════════════════════════════
+     BOTTOM SHEETS
+══════════════════════════════════════════════════ -->
+
+<!-- HP Detail Sheet -->
+<div class="sheet-ov" id="sheet-hud-hp" onclick="closeSheet('hud-hp',event)">
+  <div class="sheet-pan">
+    <div class="sh-handle"></div>
+    <div class="sh-title">❤ Punti Vita</div>
+    <div class="sh-sub">Il tuo livello di salute. Azzerandosi vieni stordito.</div>
+    <div class="sh-sec">Stato attuale</div>
+    <div class="bar-row" style="margin:8px 0">
+      <div class="bar-lbl">HP</div>
+      <div class="bar-track"><div class="bar-fill hp" id="sheet-hp-bar" style="width:85%"></div></div>
+      <div class="bar-val" id="sheet-hp-val">85/100</div>
+    </div>
+    <div class="sh-sec">Influenze attive</div>
+    <div id="hp-influences"></div>
+    <div class="sh-sec">Regole</div>
+    <div class="dev-note" id="hp-rules-note">Il max HP è 100 e riparte ogni lunedì. Vieni stordito a 0 HP (costi: rimpiazzo valuta). 3 stordimenti = morte (reset monete settimana).</div>
+    <button class="btn-main" style="margin-top:12px" onclick="closeSheet('hud-hp')">Chiudi</button>
+  </div>
+</div>
+
+<!-- NRG Detail Sheet -->
+<div class="sheet-ov" id="sheet-hud-nrg" onclick="closeSheet('hud-nrg',event)">
+  <div class="sheet-pan">
+    <div class="sh-handle"></div>
+    <div class="sh-title">⚡ Energia</div>
+    <div class="sh-sub">Capacità di fare cose durante la giornata. Si ripristina ogni giorno.</div>
+    <div class="sh-sec">Stato attuale</div>
+    <div class="bar-row" style="margin:8px 0">
+      <div class="bar-lbl">NRG</div>
+      <div class="bar-track"><div class="bar-fill nrg" id="sheet-nrg-bar" style="width:72%"></div></div>
+      <div class="bar-val" id="sheet-nrg-val">72/100</div>
+    </div>
+    <div class="sh-sec">Fattori di partenza oggi</div>
+    <div id="nrg-factors"></div>
+    <button class="btn-main" style="margin-top:12px" onclick="closeSheet('hud-nrg')">Chiudi</button>
+  </div>
+</div>
+
+<!-- GOLD Detail Sheet -->
+<div class="sheet-ov" id="sheet-hud-gold" onclick="closeSheet('hud-gold',event)">
+  <div class="sheet-pan">
+    <div class="sh-handle"></div>
+    <div class="sh-title">◈ Monete</div>
+    <div class="sh-sub">Valuta del gioco. Si guadagna completando varchi e sconfiggendo mostri.</div>
+    <div class="sh-sec">Saldo</div>
+    <div style="font-family:'Cinzel',serif;font-size:28px;color:var(--gold);text-align:center;padding:12px 0" id="gold-big-val">340</div>
+    <div class="sh-sec">Log transazioni</div>
+    <div id="gold-log"></div>
+    <button class="btn-main" style="margin-top:12px" onclick="closeSheet('hud-gold')">Chiudi</button>
+  </div>
+</div>
+
+<!-- ADD VARCO Sheet -->
+<div class="sheet-ov" id="sheet-add-varco" onclick="closeSheet('add-varco',event)">
+  <div class="sheet-pan">
+    <div class="sh-handle"></div>
+    <div class="sh-title">Nuovo Varco</div>
+    <div class="sh-sub">Aggiungi un'attività al dungeon</div>
+    <div class="form-group">
+      <label class="form-lbl">Nome attività</label>
+      <input class="form-inp" id="av-nome" placeholder="es. Allenamento forza">
+    </div>
+    <div class="form-row" style="margin-top:10px">
+      <div class="form-group">
+        <label class="form-lbl">Categoria</label>
+        <select class="form-sel" id="av-cat">
+          <option value="corpo">🏋️ Corpo</option>
+          <option value="mente">📚 Mente</option>
+          <option value="anima">🧘 Anima</option>
+          <option value="portafoglio">💼 Portafoglio</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label class="form-lbl">Tipo</label>
+        <select class="form-sel" id="av-tipo">
+          <option value="normale">Normale</option>
+          <option value="inderogabile">Inderogabile</option>
+          <option value="avanguardia">Avanguardia</option>
+        </select>
+      </div>
+    </div>
+    <div class="form-row" style="margin-top:10px">
+      <div class="form-group">
+        <label class="form-lbl">Freq./settimana</label>
+        <input class="form-inp" id="av-freq" type="number" min="1" max="7" value="3">
+      </div>
+      <div class="form-group">
+        <label class="form-lbl">Durata (min)</label>
+        <input class="form-inp" id="av-dur" type="number" min="10" value="60">
+      </div>
+    </div>
+    <div class="form-row" style="margin-top:10px">
+      <div class="form-group">
+        <label class="form-lbl">Orario preferito</label>
+        <input class="form-inp" id="av-time" type="time" value="07:00">
+      </div>
+      <div class="form-group">
+        <label class="form-lbl">Loot base (monete)</label>
+        <input class="form-inp" id="av-loot" type="number" min="10" value="50">
+      </div>
+    </div>
+    <div class="form-btns" style="margin-top:14px">
+      <button class="form-btn no" onclick="closeSheet('add-varco')">Annulla</button>
+      <button class="form-btn ok" onclick="addVarco()">Aggiungi Varco</button>
+    </div>
+  </div>
+</div>
+
+<!-- VARCO DETAIL Sheet -->
+<div class="sheet-ov" id="sheet-varco-detail" onclick="closeSheet('varco-detail',event)">
+  <div class="sheet-pan" id="varco-detail-content">
+    <div class="sh-handle"></div>
+    <div class="sh-title" id="vd-name">Allenamento</div>
+    <div class="sh-sub" id="vd-sub">Corpo · Normale · 60 min</div>
+    <div class="sh-sec">Bottino stimato</div>
+    <div id="vd-loot"></div>
+    <div class="sh-sec" style="margin-top:8px">Azione</div>
+    <div style="display:flex;gap:8px;margin-top:8px">
+      <button class="btn-main" style="flex:1" onclick="completeVarco()">✓ Completato</button>
+      <button class="btn-main btn-red" style="flex:1" onclick="failVarco()">✗ Non fatto</button>
+    </div>
+    <button class="btn-main" style="margin-top:8px;border-color:var(--border);color:var(--text-dim)" onclick="closeSheet('varco-detail')">Chiudi</button>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════
+     DEV PANEL
+══════════════════════════════════════════════════ -->
+<div id="dev-overlay">
+  <div class="dev-header">
+    <div class="dev-title">⚙ Pannello Sviluppatore</div>
+    <button class="dev-close" onclick="closeDevPanel()">✕ Chiudi</button>
+  </div>
+
+  <div class="dev-note">Modifica tutti i valori di gioco da qui. Le modifiche si applicano immediatamente alla sessione corrente e vengono salvate in localStorage. Sono visibili solo a te come sviluppatore.</div>
+
+  <!-- ── STATO GIOCATORE ── -->
+  <div class="dev-section">
+    <div class="dev-section-title">🧝 Stato Giocatore (valori correnti)</div>
+    <div class="dev-grid">
+      <div class="dev-field"><span class="dev-field-lbl">HP (0-100)</span><input class="dev-inp" id="dev-hp" type="number" min="0" max="200"></div>
+      <div class="dev-field"><span class="dev-field-lbl">Energia (0-100)</span><input class="dev-inp" id="dev-nrg" type="number" min="0" max="200"></div>
+      <div class="dev-field"><span class="dev-field-lbl">Monete</span><input class="dev-inp" id="dev-gold" type="number" min="0"></div>
+      <div class="dev-field"><span class="dev-field-lbl">Gemme</span><input class="dev-inp" id="dev-gems" type="number" min="0"></div>
+    </div>
+  </div>
+
+  <!-- ── SOGLIE HP / NRG ── -->
+  <div class="dev-section">
+    <div class="dev-section-title">❤ Regole HP & Energia</div>
+    <div class="dev-grid">
+      <div class="dev-field"><span class="dev-field-lbl">HP Max base</span><input class="dev-inp" id="dev-hp-max" type="number"></div>
+      <div class="dev-field"><span class="dev-field-lbl">Costo rianimazione (monete)</span><input class="dev-inp" id="dev-revive-cost" type="number"></div>
+      <div class="dev-field"><span class="dev-field-lbl">Stordimenti → morte</span><input class="dev-inp" id="dev-stun-death" type="number"></div>
+      <div class="dev-field"><span class="dev-field-lbl">NRG Max base</span><input class="dev-inp" id="dev-nrg-max" type="number"></div>
+    </div>
+  </div>
+
+  <!-- ── XP & LIVELLI PILASTRI ── -->
+  <div class="dev-section">
+    <div class="dev-section-title">⭐ XP & Livelli Pilastri</div>
+    <div class="dev-grid">
+      <div class="dev-field"><span class="dev-field-lbl">Corpo XP</span><input class="dev-inp" id="dev-xp-corpo" type="number"></div>
+      <div class="dev-field"><span class="dev-field-lbl">Mente XP</span><input class="dev-inp" id="dev-xp-mente" type="number"></div>
+      <div class="dev-field"><span class="dev-field-lbl">Anima XP</span><input class="dev-inp" id="dev-xp-anima" type="number"></div>
+      <div class="dev-field"><span class="dev-field-lbl">Portafoglio XP</span><input class="dev-inp" id="dev-xp-portafoglio" type="number"></div>
+    </div>
+    <div class="dev-grid" style="margin-top:8px">
+      <div class="dev-field"><span class="dev-field-lbl">XP per livello (base)</span><input class="dev-inp" id="dev-xp-per-level" type="number"></div>
+      <div class="dev-field"><span class="dev-field-lbl">Moltiplicatore per livello</span><input class="dev-inp" id="dev-xp-multiplier" type="number" step="0.1"></div>
+    </div>
+  </div>
+
+  <!-- ── VARCHI & LOOT ── -->
+  <div class="dev-section">
+    <div class="dev-section-title">⚔️ Varchi & Loot</div>
+    <div class="dev-grid">
+      <div class="dev-field"><span class="dev-field-lbl">Loot base monete (per varco)</span><input class="dev-inp" id="dev-loot-base" type="number"></div>
+      <div class="dev-field"><span class="dev-field-lbl">Scala loot per livello pilastro</span><input class="dev-inp" id="dev-loot-scale" type="number" step="0.1"></div>
+      <div class="dev-field"><span class="dev-field-lbl">% loot rubabile dai mostri</span><input class="dev-inp" id="dev-loot-steal-pct" type="number" min="0" max="100"></div>
+      <div class="dev-field"><span class="dev-field-lbl">Margine tolleranza ritardo (min)</span><input class="dev-inp" id="dev-varco-margin" type="number"></div>
+    </div>
+    <div class="dev-grid" style="margin-top:8px">
+      <div class="dev-field"><span class="dev-field-lbl">XP per varco completato</span><input class="dev-inp" id="dev-xp-varco" type="number"></div>
+      <div class="dev-field"><span class="dev-field-lbl">HP buff varco completato</span><input class="dev-inp" id="dev-hp-varco" type="number"></div>
+    </div>
+  </div>
+
+  <!-- ── MOSTRI ── -->
+  <div class="dev-section">
+    <div class="dev-section-title">👹 Mostri</div>
+    <div class="dev-grid">
+      <div class="dev-field"><span class="dev-field-lbl">Prob. Lv1 giorno stesso (%)</span><input class="dev-inp" id="dev-m-lv1-d0" type="number"></div>
+      <div class="dev-field"><span class="dev-field-lbl">Prob. Lv2 giorno stesso (%)</span><input class="dev-inp" id="dev-m-lv2-d0" type="number"></div>
+      <div class="dev-field"><span class="dev-field-lbl">Prob. Lv3 giorno stesso (%)</span><input class="dev-inp" id="dev-m-lv3-d0" type="number"></div>
+      <div class="dev-field"><span class="dev-field-lbl">Incremento Lv3 per giorno (%)</span><input class="dev-inp" id="dev-m-lv3-inc" type="number"></div>
+    </div>
+    <div class="dev-grid" style="margin-top:8px">
+      <div class="dev-field"><span class="dev-field-lbl">Danno HP mostro Lv1</span><input class="dev-inp" id="dev-m-dmg-1" type="number"></div>
+      <div class="dev-field"><span class="dev-field-lbl">Danno HP mostro Lv2</span><input class="dev-inp" id="dev-m-dmg-2" type="number"></div>
+      <div class="dev-field"><span class="dev-field-lbl">Danno HP mostro Lv3</span><input class="dev-inp" id="dev-m-dmg-3" type="number"></div>
+      <div class="dev-field"><span class="dev-field-lbl">Danno sentinella (HP)</span><input class="dev-inp" id="dev-m-dmg-sent" type="number"></div>
+    </div>
+    <div class="dev-grid" style="margin-top:8px">
+      <div class="dev-field"><span class="dev-field-lbl">Loot mostro sconfitto (monete)</span><input class="dev-inp" id="dev-m-loot" type="number"></div>
+      <div class="dev-field"><span class="dev-field-lbl">% furto portafoglio per scontro</span><input class="dev-inp" id="dev-m-steal" type="number"></div>
+    </div>
+  </div>
+
+  <!-- ── LOCANDA ── -->
+  <div class="dev-section">
+    <div class="dev-section-title">🍺 Locanda — Soglie</div>
+    <div class="dev-grid">
+      <div class="dev-field"><span class="dev-field-lbl">Acqua minima (bicchieri)</span><input class="dev-inp" id="dev-loc-acqua-min" type="number"></div>
+      <div class="dev-field"><span class="dev-field-lbl">Acqua ideale (bicchieri)</span><input class="dev-inp" id="dev-loc-acqua-ideal" type="number"></div>
+      <div class="dev-field"><span class="dev-field-lbl">Ore sonno minime</span><input class="dev-inp" id="dev-loc-sleep-min" type="number"></div>
+      <div class="dev-field"><span class="dev-field-lbl">Ore sonno ideali</span><input class="dev-inp" id="dev-loc-sleep-ideal" type="number"></div>
+    </div>
+    <div class="dev-grid" style="margin-top:8px">
+      <div class="dev-field"><span class="dev-field-lbl">HP bonus ordine locanda</span><input class="dev-inp" id="dev-loc-order-hp" type="number"></div>
+      <div class="dev-field"><span class="dev-field-lbl">NRG bonus ristoro ideale</span><input class="dev-inp" id="dev-loc-ideal-nrg" type="number"></div>
+      <div class="dev-field"><span class="dev-field-lbl">HP bonus igiene personale</span><input class="dev-inp" id="dev-loc-igiene-hp" type="number"></div>
+      <div class="dev-field"><span class="dev-field-lbl">HP bonus taglio capelli</span><input class="dev-inp" id="dev-loc-haircut-hp" type="number"></div>
+    </div>
+    <div class="dev-grid" style="margin-top:8px">
+      <div class="dev-field"><span class="dev-field-lbl">HP barba (ogni X gg)</span><input class="dev-inp" id="dev-loc-beard-hp" type="number"></div>
+      <div class="dev-field"><span class="dev-field-lbl">Limite igiene al giorno</span><input class="dev-inp" id="dev-loc-igiene-limit" type="number"></div>
+    </div>
+  </div>
+
+  <!-- ── STREGONE ── -->
+  <div class="dev-section">
+    <div class="dev-section-title">🧙 Stregone & Evocazioni</div>
+    <div class="dev-grid">
+      <div class="dev-field"><span class="dev-field-lbl">Max evocazioni/giorno</span><input class="dev-inp" id="dev-evo-max" type="number"></div>
+      <div class="dev-field"><span class="dev-field-lbl">Max formule magiche/giorno</span><input class="dev-inp" id="dev-formula-max" type="number"></div>
+    </div>
+  </div>
+
+  <!-- ── SIGILLI & POTERI ── -->
+  <div class="dev-section">
+    <div class="dev-section-title">🔮 Sigilli & Poteri</div>
+    <div class="dev-grid">
+      <div class="dev-field"><span class="dev-field-lbl">Giorni abitudine → sigillo</span><input class="dev-inp" id="dev-habit-curse-days" type="number"></div>
+      <div class="dev-field"><span class="dev-field-lbl">Giorni per rimuovere abitudine</span><input class="dev-inp" id="dev-habit-heal-days" type="number"></div>
+    </div>
+  </div>
+
+  <!-- ── ANFRATTI ── -->
+  <div class="dev-section">
+    <div class="dev-section-title">🌀 Anfratti (Varchi Soglia)</div>
+    <div class="dev-grid">
+      <div class="dev-field"><span class="dev-field-lbl">Livello soglia Anfratto</span><input class="dev-inp" id="dev-anfratto-level" type="number"></div>
+      <div class="dev-field"><span class="dev-field-lbl">Moltiplicatore loot anfratto</span><input class="dev-inp" id="dev-anfratto-loot-mult" type="number" step="0.1"></div>
+    </div>
+  </div>
+
+  <!-- ── GEMME ── -->
+  <div class="dev-section">
+    <div class="dev-section-title">◆ Gemme</div>
+    <div class="dev-grid">
+      <div class="dev-field"><span class="dev-field-lbl">Valore gemma in monete</span><input class="dev-inp" id="dev-gem-value" type="number"></div>
+      <div class="dev-field"><span class="dev-field-lbl">Costo gemme taglio capelli</span><input class="dev-inp" id="dev-haircut-gems" type="number"></div>
+    </div>
+  </div>
+
+  <!-- ── EMPORIO ── -->
+  <div class="dev-section">
+    <div class="dev-section-title">🏪 Emporio — Wishlist Premi</div>
+    <div class="dev-note">Aggiungi o modifica i premi disponibili nell'emporio. Il giocatore li acquista con monete accumulate.</div>
+    <div id="dev-emp-items"></div>
+    <button class="btn-ghost" style="margin-top:6px" onclick="devAddEmpItem()">＋ Aggiungi premio</button>
+  </div>
+
+  <!-- ── AZIONI DEBUG ── -->
+  <div class="dev-section">
+    <div class="dev-section-title">🛠 Azioni Debug</div>
+    <div class="dev-grid">
+      <button class="btn-main btn-purple" style="padding:9px" onclick="devAddMonete(100)">+100 Monete</button>
+      <button class="btn-main btn-purple" style="padding:9px" onclick="devAddGems(5)">+5 Gemme</button>
+      <button class="btn-main btn-red" style="padding:9px" onclick="devDamageHP(10)">-10 HP</button>
+      <button class="btn-main" style="padding:9px" onclick="devHealHP(10)">+10 HP</button>
+      <button class="btn-main btn-red" style="padding:9px" onclick="devTriggerStordimento()">Simula Stordimento</button>
+      <button class="btn-main btn-red" style="padding:9px" onclick="devResetWeek()">Reset Settimana</button>
+    </div>
+  </div>
+
+  <div class="dev-save-bar">
+    <button class="dev-save" onclick="saveDevPanel()">💾 Applica & Salva</button>
+    <button class="dev-reset" onclick="resetDevPanel()">Reset Default</button>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════
+     JAVASCRIPT
+══════════════════════════════════════════════════ -->
+<script>
+/* ════════════════════════════════════════════════
+   CONFIG DEFAULT (modificabile dal pannello dev)
+════════════════════════════════════════════════ */
+const DEFAULT_CONFIG = {
+  // Stato giocatore
+  hp: 85, nrg: 72, gold: 340, gems: 12,
+  // HP rules
+  hpMax: 100, reviveCost: 80, stunDeath: 3, nrgMax: 100,
+  // XP e pilastri
+  xpCorpo: 120, xpMente: 85, xpAnima: 60, xpPortafoglio: 200,
+  xpPerLevel: 100, xpMultiplier: 1.5,
+  // Varchi e loot
+  lootBase: 50, lootScale: 1.2, lootStealPct: 40, varcoMargin: 30,
+  xpVarco: 25, hpVarco: 0,
+  // Mostri
+  mLv1D0: 65, mLv2D0: 30, mLv3D0: 5, mLv3Inc: 5,
+  mDmg1: 8, mDmg2: 15, mDmg3: 25, mDmgSent: 35,
+  mLoot: 20, mSteal: 10,
+  // Locanda
+  locAcquaMin: 6, locAcquaIdeal: 8,
+  locSleepMin: 6, locSleepIdeal: 8,
+  locOrderHp: 5, locIdealNrg: 10, locIgieneHp: 5, locHaircutHp: 10,
+  locBeardHp: 5, locIgieneLimit: 3,
+  // Stregone
+  evoMax: 3, formulaMax: 2,
+  // Sigilli
+  habitCurseDays: 7, habitHealDays: 21,
+  // Anfratti
+  anfrattoLevel: 5, anfrattoLootMult: 2.5,
+  // Gemme
+  gemValue: 50, haircutGems: 2,
+  // Emporio items
+  emporioItems: [
+    {id:1, nome:"Serata Cinema", desc:"Una serata al cinema a scelta", costo:200, tipo:"esperienza", icon:"🎬", sbloccato:false},
+    {id:2, nome:"Libro a scelta", desc:"Un libro che desideri da Amazon", costo:150, tipo:"oggetto", icon:"📖", sbloccato:false},
+    {id:3, nome:"Cena Speciale", desc:"Ristorante a scelta", costo:400, tipo:"esperienza", icon:"🍽️", sbloccato:false},
+    {id:4, nome:"Gioco Steam", desc:"Un gioco su Steam fino a €20", costo:300, tipo:"digitale", icon:"🎮", sbloccato:false},
+    {id:5, nome:"Weekend Fuori", desc:"Weekend in una città a scelta", costo:1200, tipo:"esperienza", icon:"🧳", sbloccato:false},
+  ]
+};
+
+/* ════════════════════════════════════════════════
+   STATO GLOBALE
+════════════════════════════════════════════════ */
+let cfg = JSON.parse(localStorage.getItem('rise_cfg') || 'null') || {...DEFAULT_CONFIG};
+
+// Dati di gioco
+let gameState = JSON.parse(localStorage.getItem('rise_state') || 'null') || {
+  stordimenti: 0,
+  settimana: 1,
+  giorno: getGiornoSettimana(),
+  // Varchi (attività)
+  varchi: [
+    {id:1,nome:"Allenamento Forza",cat:"corpo",tipo:"normale",freq:3,dur:60,ora:"07:00",loot:60,done:false,late:false,icon:"🏋️"},
+    {id:2,nome:"Studio / Lettura",cat:"mente",tipo:"normale",freq:5,dur:45,ora:"09:00",loot:50,done:false,late:false,icon:"📚"},
+    {id:3,nome:"Meditazione",cat:"anima",tipo:"normale",freq:7,dur:20,ora:"06:30",loot:40,done:false,late:false,icon:"🧘"},
+    {id:4,nome:"Lavoro (blocco focus)",cat:"portafoglio",tipo:"normale",freq:5,dur:120,ora:"10:00",loot:80,done:false,late:false,icon:"💼"},
+    {id:5,nome:"Box — Solo Lunedì",cat:"corpo",tipo:"inderogabile",freq:1,dur:90,ora:"18:00",loot:70,done:false,late:false,icon:"🥊"},
+  ],
+  mostri: [
+    {id:1,nome:"Ombra della Pigrizia",cat:"corpo",lv:2,done:false,esito:null,icon:"👻",desc:"Appare quando l'allenamento è rimandato. Colpi critici possibili."},
+    {id:2,nome:"Il Murmure del Dubbio",cat:"mente",lv:1,done:false,esito:null,icon:"🌫️",desc:"Sorge dallo studio rimandato. Può schivare i tuoi attacchi."},
+  ],
+  // Locanda
+  locanda: {acqua:0, cibo_verdura:0, cibo_frutta:0, cibo_proteine:0, oreSonno:0, ordine:70, lavatrice:false},
+  // Igiene cooldowns (timestamp ultimo utilizzo)
+  igiene: {barba:null, capelli:null, rasatura:null, lavatrice:null},
+  // Inventario artefici
+  inventario: [],
+  // Log monete
+  goldLog: [
+    {desc:"Varco Meditazione completato", val:+40, time:"ieri"},
+    {desc:"Mostro sconfitto", val:+20, time:"ieri"},
+  ],
+  // Cambiamenti di stato attivi
+  statiAttivi: [
+    {id:1, nome:"Telefono al risveglio", tipo:"neg", effetto:"assopimento", icon:"📱", desc:"-5 NRG mattutina"},
+  ],
+  // Evocazioni usate oggi
+  evoUsate: 0,
+  formuleUsate: 0,
+  // Acquisti emporio
+  emporioAcquistati: [],
+};
+
+let selectedVarcoId = null;
+
+/* ════════════════════════════════════════════════
+   UTILITIES
+════════════════════════════════════════════════ */
+function getGiornoSettimana(){
+  return new Date().getDay(); // 0=dom, 1=lun...
+}
+function saveAll(){
+  localStorage.setItem('rise_cfg', JSON.stringify(cfg));
+  localStorage.setItem('rise_state', JSON.stringify(gameState));
+}
+function toast(msg, duration=2200){
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  setTimeout(()=>t.classList.remove('show'), duration);
+}
+function clamp(v,min,max){return Math.max(min,Math.min(max,v));}
+
+/* ════════════════════════════════════════════════
+   HUD UPDATE
+════════════════════════════════════════════════ */
+function updateHUD(){
+  const hp = clamp(cfg.hp, 0, cfg.hpMax);
+  const nrg = clamp(cfg.nrg, 0, cfg.nrgMax);
+  document.getElementById('hud-hp-val').textContent = hp;
+  document.getElementById('hud-nrg-val').textContent = nrg;
+  document.getElementById('hud-gold-val').textContent = cfg.gold;
+  document.getElementById('hud-gem-val').textContent = cfg.gems;
+  document.getElementById('hud-hp-bar').style.width = (hp/cfg.hpMax*100)+'%';
+  document.getElementById('hud-nrg-bar').style.width = (nrg/cfg.nrgMax*100)+'%';
+  document.getElementById('hud-gold-bar').style.width = Math.min(100,cfg.gold/1000*100)+'%';
+  document.getElementById('hud-gem-bar').style.width = Math.min(100,cfg.gems/50*100)+'%';
+  document.getElementById('emp-balance').textContent = cfg.gold;
+  // sheet sync
+  if(document.getElementById('sheet-hp-bar')) document.getElementById('sheet-hp-bar').style.width=(hp/cfg.hpMax*100)+'%';
+  if(document.getElementById('sheet-hp-val')) document.getElementById('sheet-hp-val').textContent=hp+'/'+cfg.hpMax;
+  if(document.getElementById('sheet-nrg-bar')) document.getElementById('sheet-nrg-bar').style.width=(nrg/cfg.nrgMax*100)+'%';
+  if(document.getElementById('sheet-nrg-val')) document.getElementById('sheet-nrg-val').textContent=nrg+'/'+cfg.nrgMax;
+  if(document.getElementById('gold-big-val')) document.getElementById('gold-big-val').textContent=cfg.gold;
+  renderStatiRow();
+  saveAll();
+}
+
+/* ════════════════════════════════════════════════
+   NAVIGATION
+════════════════════════════════════════════════ */
+function switchView(id, btn){
+  document.querySelectorAll('.view').forEach(v=>v.classList.remove('active'));
+  document.querySelectorAll('.nav-btn').forEach(b=>b.classList.remove('active'));
+  document.getElementById('view-'+id).classList.add('active');
+  btn.classList.add('active');
+}
+function switchITab(viewId, tabId){
+  const view = document.getElementById('view-'+viewId) || document.getElementById('stregone-'+tabId)?.closest('.view');
+  // find tabs container
+  const allTabs = document.querySelectorAll('#view-'+viewId+' .inner-tab, #view-stregone .inner-tab');
+  const allContents = document.querySelectorAll('#view-'+viewId+' .itab-content, #view-stregone .itab-content');
+  // scope to the specific view
+  const tabs = [...document.querySelectorAll('#view-'+viewId+' .inner-tab, [id="view-'+viewId+'"] .inner-tab')];
+  const contents = [...document.querySelectorAll('[id^="'+viewId+'-"], [id^="'+viewId+'_"]')].filter(el=>el.classList.contains('itab-content'));
+  // simpler approach: find parent view
+  const parentView = document.getElementById('view-'+viewId) || (viewId==='stregone'?document.getElementById('view-stregone'):null);
+  if(!parentView) return;
+  parentView.querySelectorAll('.inner-tab').forEach(t=>t.classList.remove('active'));
+  parentView.querySelectorAll('.itab-content').forEach(c=>c.classList.remove('active'));
+  // find matching tab by onclick
+  parentView.querySelectorAll('.inner-tab').forEach(t=>{
+    if(t.getAttribute('onclick') && t.getAttribute('onclick').includes(tabId)) t.classList.add('active');
+  });
+  const content = document.getElementById(viewId+'-'+tabId) || document.getElementById('stregone-'+tabId);
+  if(content) content.classList.add('active');
+}
+
+/* ════════════════════════════════════════════════
+   SHEETS
+════════════════════════════════════════════════ */
+function openSheet(id){
+  document.getElementById('sheet-'+id)?.classList.add('active');
+}
+function closeSheet(id, event){
+  if(event && event.target !== document.getElementById('sheet-'+id)) return;
+  document.getElementById('sheet-'+id)?.classList.remove('active');
+}
+function openAddVarco(){openSheet('add-varco');}
+
+/* ════════════════════════════════════════════════
+   VARCHI RENDER
+════════════════════════════════════════════════ */
+function getCatAccClass(cat){
+  return {corpo:'acc-corpo',mente:'acc-mente',anima:'acc-anima',portafoglio:'acc-portafoglio'}[cat]||'acc-bar';
+}
+function getCatBadgeClass(cat){
+  return {corpo:'badge-red',mente:'badge-blue',anima:'badge-zen',portafoglio:'badge-gold'}[cat]||'badge-gold';
+}
+function getLootForVarco(v){
+  return Math.round(v.loot * cfg.lootScale);
+}
+
+function renderVarchi(){
+  const list = document.getElementById('varchi-list');
+  const cats = ['corpo','mente','anima','portafoglio'];
+  const catLabel = {corpo:'⚔ Corpo',mente:'📚 Mente',anima:'🌿 Anima',portafoglio:'💼 Portafoglio'};
+  let html = '';
+  cats.forEach(cat=>{
+    const catVarchi = gameState.varchi.filter(v=>v.cat===cat);
+    if(!catVarchi.length) return;
+    html += `<div class="sec-head">${catLabel[cat]}</div>`;
+    catVarchi.forEach(v=>{
+      const isDone = v.done;
+      const isLate = v.late && !isDone;
+      const loot = getLootForVarco(v);
+      html += `
+      <div class="varco ${isDone?'done':''} ${isLate?'late':''} ${v.tipo==='inderogabile'?'anfratto':''}" onclick="openVarcoDetail(${v.id})">
+        <div class="acc-bar ${isDone?'acc-done':isLate?'acc-late':getCatAccClass(cat)}"></div>
+        <div class="varco-body">
+          <div class="varco-icon">${v.icon}</div>
+          <div class="varco-info">
+            <div class="varco-name">${v.nome}</div>
+            <div class="varco-meta">
+              <span class="varco-tag pill-badge ${getCatBadgeClass(cat)}">${cat}</span>
+              <span class="varco-tag pill-badge ${v.tipo==='inderogabile'?'badge-red':'badge-gold'}">${v.tipo}</span>
+              <span style="font-size:9px;color:var(--text-dim);font-style:italic">${v.freq}x/sett · ${v.dur}min · ${v.ora}</span>
+            </div>
+          </div>
+          <div class="varco-right">
+            <div class="varco-loot">◈ ${loot}</div>
+            <div class="varco-time">${isDone?'✓ Fatto':isLate?'⚠ Tardi':v.ora}</div>
+          </div>
+        </div>
+      </div>`;
+    });
+  });
+  list.innerHTML = html + `<button class="btn-ghost" onclick="openAddVarco()">＋ Aggiungi Varco</button>`;
+}
+
+function openVarcoDetail(id){
+  const v = gameState.varchi.find(x=>x.id===id);
+  if(!v) return;
+  selectedVarcoId = id;
+  const loot = getLootForVarco(v);
+  document.getElementById('vd-name').textContent = v.icon+' '+v.nome;
+  document.getElementById('vd-sub').textContent = v.cat+' · '+v.tipo+' · '+v.dur+'min';
+  document.getElementById('vd-loot').innerHTML = `
+    <div class="card-row" style="padding:8px 0">
+      <span class="row-icon">◈</span>
+      <div class="row-info"><div class="row-name">Monete</div></div>
+      <span style="font-family:'Cinzel',serif;color:var(--gold)">${loot}</span>
+    </div>
+    <div class="card-row" style="padding:8px 0">
+      <span class="row-icon">⭐</span>
+      <div class="row-info"><div class="row-name">XP ${v.cat}</div></div>
+      <span style="font-family:'Cinzel',serif;color:var(--green)">${cfg.xpVarco}</span>
+    </div>
+  `;
+  openSheet('varco-detail');
+}
+
+function completeVarco(){
+  if(!selectedVarcoId) return;
+  const v = gameState.varchi.find(x=>x.id===selectedVarcoId);
+  if(!v) return;
+  v.done = true;
+  v.late = false;
+  // Ricompense
+  const loot = getLootForVarco(v);
+  cfg.gold += loot;
+  cfg.hp = Math.min(cfg.hpMax, cfg.hp + cfg.hpVarco);
+  // XP pilastro
+  cfg['xp'+v.cat.charAt(0).toUpperCase()+v.cat.slice(1)] += cfg.xpVarco;
+  // Log
+  gameState.goldLog.unshift({desc:`Varco "${v.nome}" completato`, val:+loot, time:'ora'});
+  closeSheet('varco-detail');
+  renderVarchi();
+  renderPillars();
+  updateHUD();
+  toast(`✓ Varco completato! +${loot} monete`);
+}
+
+function failVarco(){
+  if(!selectedVarcoId) return;
+  const v = gameState.varchi.find(x=>x.id===selectedVarcoId);
+  if(!v) return;
+  v.late = true;
+  // Genera mostro
+  generateMostro(v);
+  closeSheet('varco-detail');
+  renderVarchi();
+  renderMostri();
+  updateHUD();
+  toast(`⚠ Varco fallito. Appare un mostro!`);
+}
+
+function addVarco(){
+  const nome = document.getElementById('av-nome').value.trim();
+  if(!nome){toast('Inserisci un nome!');return;}
+  const catIcons = {corpo:'🏋️',mente:'📚',anima:'🧘',portafoglio:'💼'};
+  const cat = document.getElementById('av-cat').value;
+  const newV = {
+    id: Date.now(),
+    nome,
+    cat,
+    tipo: document.getElementById('av-tipo').value,
+    freq: +document.getElementById('av-freq').value,
+    dur: +document.getElementById('av-dur').value,
+    ora: document.getElementById('av-time').value,
+    loot: +document.getElementById('av-loot').value,
+    done: false,
+    late: false,
+    icon: catIcons[cat]||'⚔️'
+  };
+  gameState.varchi.push(newV);
+  closeSheet('add-varco');
+  renderVarchi();
+  renderRoutine();
+  toast('Varco aggiunto!');
+  saveAll();
+}
+
+/* ════════════════════════════════════════════════
+   MOSTRI
+════════════════════════════════════════════════ */
+const MOSTRI_TEMPLATES = {
+  corpo:     [{nome:"Ombra della Pigrizia",icon:"👻",desc:"Colpi critici possibili. Più energia hai, più efficace sei."},{nome:"Il Guardiano della Routine",icon:"🐉",desc:"Creatura dell'abitudine spezzata. Resistente ai colpi."}],
+  mente:     [{nome:"Il Murmure del Dubbio",icon:"🌫️",desc:"Può schivare i tuoi attacchi. Molto mobile."},{nome:"La Nebbia della Procrastinazione",icon:"🌀",desc:"Rallenta i tuoi progressi. Difficile da colpire."}],
+  anima:     [{nome:"Il Peso del Silenzio",icon:"😶",desc:"Consuma più energia ogni round. Logorante."},{nome:"L'Eco della Distrazione",icon:"📺",desc:"Rumoroso e fastidioso. Drena la concentrazione."}],
+  portafoglio:[{nome:"Il Ladro d'Ore",icon:"⌛",desc:"Ruba monete al termine dello scontro."},{nome:"La Chimera del Rimando",icon:"🎭",desc:"Si trasforma, difficile da prevedere. Ruba loot."}]
+};
+
+function generateMostro(varco){
+  const templates = MOSTRI_TEMPLATES[varco.cat] || MOSTRI_TEMPLATES.corpo;
+  const t = templates[Math.floor(Math.random()*templates.length)];
+  const lv = rollMostroLevel();
+  gameState.mostri.push({
+    id: Date.now(),
+    nome: t.nome,
+    cat: varco.cat,
+    lv,
+    done: false,
+    esito: null,
+    icon: t.icon,
+    desc: t.desc,
+    sentinella: varco.tipo === 'inderogabile'
+  });
+  saveAll();
+}
+
+function rollMostroLevel(){
+  const r = Math.random()*100;
+  if(r < cfg.mLv1D0) return 1;
+  if(r < cfg.mLv1D0 + cfg.mLv2D0) return 2;
+  return 3;
+}
+
+function renderMostri(){
+  const list = document.getElementById('mostri-list');
+  const attivi = gameState.mostri.filter(m=>!m.done);
+  const risolti = gameState.mostri.filter(m=>m.done);
+  if(!gameState.mostri.length){
+    list.innerHTML = `<div class="dev-note">Nessun mostro attivo. Completa i varchi per evitarli.</div>`;
+    document.getElementById('badge-mostri').textContent = '0';
+    return;
+  }
+  document.getElementById('badge-mostri').textContent = attivi.length;
+  let html = '';
+  if(attivi.length){
+    html += `<div class="sec-head">Attivi (${attivi.length})</div>`;
+    attivi.forEach(m=>{
+      const lvColors = {1:'var(--red-bright)',2:'#e08040',3:var_('--purple-light')};
+      const dmg = [cfg.mDmg1,cfg.mDmg2,cfg.mDmg3][m.lv-1]||cfg.mDmg1;
+      html += `
+      <div class="mostro ${m.sentinella?'sentinella':''}">
+        <div class="acc-bar ${getCatAccClass(m.cat)}"></div>
+        <div class="mo-body">
+          <div class="mo-top">
+            <div class="mo-icon">${m.icon}</div>
+            <div style="flex:1">
+              <div class="mo-name ${m.sentinella?'sent':''}">${m.nome}</div>
+              <div class="mo-desc">${m.desc}</div>
+              <div style="margin-top:5px;display:flex;gap:4px;flex-wrap:wrap">
+                <span class="pill-badge badge-red">Lv ${m.lv}</span>
+                <span class="pill-badge ${getCatBadgeClass(m.cat)}">${m.cat}</span>
+                ${m.sentinella?`<span class="pill-badge badge-red">⚠ Sentinella</span>`:''}
+                <span style="font-size:9px;color:var(--text-dim);font-style:italic">Danno: ${dmg} HP</span>
+              </div>
+            </div>
+          </div>
+          <div class="mo-btns">
+            <button class="mo-btn win" onclick="risolviMostro(${m.id},'win')">⚔ Sconfiggi</button>
+            <button class="mo-btn lose" onclick="risolviMostro(${m.id},'lose')">✗ Subisci danni</button>
+          </div>
+        </div>
+      </div>`;
+    });
+  }
+  if(risolti.length){
+    html += `<div class="sec-head" style="margin-top:4px">Risolti</div>`;
+    risolti.forEach(m=>{
+      html += `
+      <div class="mostro ${m.esito==='win'?'r-win':'r-lose'}" style="opacity:0.5">
+        <div class="acc-bar" style="background:${m.esito==='win'?'var(--green-dim)':'var(--red-dim)'}"></div>
+        <div class="mo-body">
+          <div class="mo-top">
+            <div class="mo-icon">${m.icon}</div>
+            <div><div class="mo-name" style="color:${m.esito==='win'?'var(--green)':'var(--red-bright)'}">${m.nome}</div>
+            <div style="font-size:9px;color:var(--text-dim);font-style:italic;margin-top:3px">${m.esito==='win'?'✓ Sconfitto':'✗ Subiti danni'}</div></div>
+          </div>
+        </div>
+      </div>`;
+    });
+  }
+  list.innerHTML = html;
+}
+
+function var_(name){ return getComputedStyle(document.documentElement).getPropertyValue(name).trim(); }
+
+function risolviMostro(id, esito){
+  const m = gameState.mostri.find(x=>x.id===id);
+  if(!m) return;
+  m.done = true;
+  m.esito = esito;
+  if(esito==='win'){
+    cfg.gold += cfg.mLoot;
+    gameState.goldLog.unshift({desc:`Mostro "${m.nome}" sconfitto`, val:+cfg.mLoot, time:'ora'});
+    toast(`⚔ Mostro sconfitto! +${cfg.mLoot} monete`);
+  } else {
+    const dmg = [cfg.mDmg1,cfg.mDmg2,cfg.mDmg3][m.lv-1]||cfg.mDmg1;
+    cfg.hp = Math.max(0, cfg.hp - dmg);
+    if(m.sentinella) cfg.hp = Math.max(0, cfg.hp - cfg.mDmgSent);
+    if(m.cat==='portafoglio'){
+      const stolen = Math.round(cfg.gold * cfg.mSteal/100);
+      cfg.gold = Math.max(0, cfg.gold - stolen);
+      toast(`⚠ Subiti ${dmg} danni. ${m.cat==='portafoglio'?`Il ladro ha rubato ${stolen} monete!`:''}`);
+    } else {
+      toast(`⚠ Subiti ${dmg} danni HP!`);
+    }
+    checkStordimento();
+  }
+  renderMostri();
+  updateHUD();
+  saveAll();
+}
+
+function checkStordimento(){
+  if(cfg.hp <= 0){
+    gameState.stordimenti++;
+    cfg.hp = cfg.hpMax;
+    if(gameState.stordimenti >= cfg.stunDeath){
+      toast(`💀 MORTO! Perdi tutte le monete della settimana!`, 4000);
+      cfg.gold = 0;
+      gameState.stordimenti = 0;
+    } else {
+      const cost = cfg.reviveCost;
+      cfg.gold = Math.max(0, cfg.gold - cost);
+      toast(`😵 STORDITO! (-${cost} monete rianimazione) · Stord. ${gameState.stordimenti}/${cfg.stunDeath}`, 3500);
+    }
+    updateHUD();
+  }
+}
+
+/* ════════════════════════════════════════════════
+   SETTIMANA / ROUTINE
+════════════════════════════════════════════════ */
+function renderWeekGrid(){
+  const oggi = new Date();
+  const days = ['Lu','Ma','Me','Gi','Ve','Sa','Do'];
+  let html = '';
+  for(let i=0;i<7;i++){
+    const d = new Date(oggi);
+    const dayOfWeek = (oggi.getDay()+6)%7; // 0=lun
+    d.setDate(oggi.getDate() - dayOfWeek + i);
+    const isToday = d.toDateString()===oggi.toDateString();
+    const varchiGiorno = gameState.varchi.filter(v=>{
+      // approximate: show dots based on freq
+      return v.freq >= (i+1) || (i < v.freq);
+    }).length;
+    html += `<div class="day-cell ${isToday?'today':''}">
+      <div class="day-name">${days[i]}</div>
+      <div class="day-num">${d.getDate()}</div>
+      <div class="day-dots">${Array.from({length:Math.min(varchiGiorno,4)},(_,j)=>`<div class="day-dot ${j<2?'filled':''}"></div>`).join('')}</div>
+    </div>`;
+  }
+  document.getElementById('week-grid').innerHTML = html;
+}
+
+function renderRoutine(){
+  const list = document.getElementById('routine-list');
+  let html = '';
+  const catLabel = {corpo:'⚔',mente:'📚',anima:'🌿',portafoglio:'💼'};
+  gameState.varchi.forEach(v=>{
+    html += `
+    <div class="card" style="margin-bottom:6px">
+      <div class="card-body" style="padding:10px 14px;display:flex;align-items:center;gap:10px">
+        <span style="font-size:20px">${v.icon}</span>
+        <div style="flex:1">
+          <div class="row-name">${v.nome}</div>
+          <div class="row-sub">${v.cat} · ${v.freq}x/sett · ${v.dur}min · ${v.ora}</div>
+        </div>
+        <span class="pill-badge ${getCatBadgeClass(v.cat)}">${v.loot}◈</span>
+        <button onclick="removeVarco(${v.id})" style="background:none;border:none;color:var(--text-dim);cursor:pointer;padding:4px;font-size:14px" title="Rimuovi">✕</button>
+      </div>
+    </div>`;
+  });
+  list.innerHTML = html;
+}
+
+function removeVarco(id){
+  gameState.varchi = gameState.varchi.filter(v=>v.id!==id);
+  renderVarchi();
+  renderRoutine();
+  saveAll();
+  toast('Varco rimosso');
+}
+
+/* ════════════════════════════════════════════════
+   LOCANDA
+════════════════════════════════════════════════ */
+function renderLocanda(){
+  // Food
+  const foods = [
+    {key:'acqua', icon:'💧', nome:'Acqua', unit:'bicchieri', min:cfg.locAcquaMin, ideal:cfg.locAcquaIdeal, effect:'<span class="pos">+5 HP al ideale</span>'},
+    {key:'cibo_verdura', icon:'🥦', nome:'Verdure', unit:'porzioni', min:1, ideal:3, effect:'<span class="pos">+3 HP al ideale</span>'},
+    {key:'cibo_frutta', icon:'🍎', nome:'Frutta', unit:'porzioni', min:1, ideal:2, effect:'<span class="pos">+2 HP al ideale</span>'},
+    {key:'cibo_proteine', icon:'🥩', nome:'Proteine', unit:'porzioni', min:1, ideal:2, effect:'<span class="pos">+2 HP al ideale</span>'},
+  ];
+  let html = '';
+  foods.forEach(f=>{
+    const val = gameState.locanda[f.key]||0;
+    html += `
+    <div class="loc-item">
+      <div class="loc-item-head">
+        <span class="loc-item-icon">${f.icon}</span>
+        <div class="loc-item-name">${f.nome}</div>
+        <div class="ctrl-row">
+          <div class="ctrl-btn" onclick="locDecr('${f.key}')">−</div>
+          <div class="ctrl-val" id="loc-${f.key}">${val}</div>
+          <div class="ctrl-btn" onclick="locIncr('${f.key}')">+</div>
+        </div>
+      </div>
+      <div class="loc-item-effect">${f.effect}</div>
+      <div class="loc-thresholds">
+        <span class="loc-thr min">min: ${f.min} ${f.unit}</span>
+        <span class="loc-thr ideal">ideale: ${f.ideal} ${f.unit}</span>
+      </div>
+      <div class="bar-row"><div class="bar-track"><div class="bar-fill nrg" id="loc-bar-${f.key}" style="width:${Math.min(100,val/f.ideal*100)}%"></div></div><div class="bar-val" style="color:${val>=f.ideal?'var(--green)':val>=f.min?'var(--gold)':'var(--red-bright)'}">${val>=f.ideal?'✓ ideale':val>=f.min?'min':'sotto'}</div></div>
+    </div>`;
+  });
+  document.getElementById('locanda-food-list').innerHTML = html;
+
+  // Sleep
+  const ore = gameState.locanda.oreSonno||0;
+  document.getElementById('locanda-sleep-list').innerHTML = `
+  <div class="loc-item">
+    <div class="loc-item-head">
+      <span class="loc-item-icon">🌙</span>
+      <div class="loc-item-name">Ore dormite</div>
+      <div class="ctrl-row">
+        <div class="ctrl-btn" onclick="locDecr('oreSonno')">−</div>
+        <div class="ctrl-val" id="loc-oreSonno">${ore}</div>
+        <div class="ctrl-btn" onclick="locIncr('oreSonno')">+</div>
+      </div>
+    </div>
+    <div class="loc-thresholds">
+      <span class="loc-thr min">min: ${cfg.locSleepMin}h</span>
+      <span class="loc-thr ideal">ideale: ${cfg.locSleepIdeal}h</span>
+    </div>
+    <div class="bar-row"><div class="bar-track"><div class="bar-fill nrg" id="loc-bar-oreSonno" style="width:${Math.min(100,ore/cfg.locSleepIdeal*100)}%"></div></div><div class="bar-val">${ore}h</div></div>
+  </div>`;
+
+  // Ordine
+  const ordine = gameState.locanda.ordine||0;
+  document.getElementById('locanda-order-list').innerHTML = `
+  <div class="loc-item">
+    <div class="loc-item-head">
+      <span class="loc-item-icon">🏠</span>
+      <div class="loc-item-name">Ordine Locanda</div>
+      <div style="font-family:'Cinzel',serif;font-size:13px;color:var(--gold)">${ordine}%</div>
+    </div>
+    <div class="loc-item-effect"><span class="${ordine>=80?'pos':'neg'}">${ordine>=80?'+'+cfg.locOrderHp+' HP · +NRG bonus':'Locanda disordinata: nessun bonus'}</span></div>
+    <div class="bar-row"><div class="bar-track"><div class="bar-fill ${ordine>=80?'green':'nrg'}" style="width:${ordine}%"></div></div></div>
+    <div class="form-row" style="margin-top:8px;gap:6px">
+      <button class="btn-main btn-red" style="padding:7px;font-size:8px" onclick="updateOrdine(-10)">−10% disordine</button>
+      <button class="btn-main" style="padding:7px;font-size:8px" onclick="updateOrdine(+15)">+15% metti in ordine</button>
+    </div>
+  </div>`;
+}
+
+function locIncr(key){
+  gameState.locanda[key] = (gameState.locanda[key]||0)+1;
+  updateLocField(key);
+}
+function locDecr(key){
+  gameState.locanda[key] = Math.max(0,(gameState.locanda[key]||0)-1);
+  updateLocField(key);
+}
+function updateLocField(key){
+  const el = document.getElementById('loc-'+key);
+  if(el) el.textContent = gameState.locanda[key];
+  saveAll();
+}
+function updateOrdine(delta){
+  gameState.locanda.ordine = clamp((gameState.locanda.ordine||70)+delta,0,100);
+  document.getElementById('locanda-order-badge').textContent = 'Ordine '+gameState.locanda.ordine+'%';
+  renderLocanda();
+  saveAll();
+}
+function saveLocanda(){
+  // calcola effetti
+  const acqua = gameState.locanda.acqua||0;
+  const ore = gameState.locanda.oreSonno||0;
+  let hpBonus = 0, nrgBonus = 0;
+  if(acqua >= cfg.locAcquaIdeal) hpBonus += 5;
+  if(ore >= cfg.locSleepIdeal){ hpBonus += 3; nrgBonus += cfg.locIdealNrg; }
+  if(gameState.locanda.ordine >= 80) hpBonus += cfg.locOrderHp;
+  cfg.hp = Math.min(cfg.hpMax, cfg.hp + hpBonus);
+  cfg.nrg = Math.min(cfg.nrgMax, cfg.nrg + nrgBonus);
+  updateHUD();
+  toast(`Giornata confermata! ${hpBonus>0?'+'+hpBonus+' HP ':''} ${nrgBonus>0?'+'+nrgBonus+' NRG':''}`);
+  saveAll();
+}
+
+/* ════════════════════════════════════════════════
+   IGIENE PERSONALE
+════════════════════════════════════════════════ */
+function renderIgiene(){
+  const now = Date.now();
+  const ONE_DAY = 86400000;
+  const igiene = [
+    {key:'barba', icon:'🧔', nome:'Farsi la Barba', desc:`+${cfg.locBeardHp} HP · ogni 2 giorni`, cooldown: ONE_DAY*2, hpVal: cfg.locBeardHp, gem:0},
+    {key:'rasatura', icon:'🪒', nome:'Rasatura completa', desc:'+5 HP · ogni 2 settimane', cooldown: ONE_DAY*14, hpVal:5, gem:0},
+    {key:'capelli', icon:'💇', nome:'Taglio Capelli', desc:`+${cfg.locHaircutHp} HP · max 1/settimana · costa ${cfg.haircutGems} gemme`, cooldown: ONE_DAY*7, hpVal: cfg.locHaircutHp, gem: cfg.haircutGems},
+    {key:'lavatrice', icon:'🫧', nome:'Fare la Lavatrice', desc:'+3 HP · senza limiti', cooldown: ONE_DAY, hpVal:3, gem:0},
+  ];
+  let html = '';
+  igiene.forEach(ig=>{
+    const last = gameState.igiene[ig.key];
+    const elapsed = last ? now - last : Infinity;
+    const available = elapsed >= ig.cooldown;
+    html += `
+    <div class="igiene-item">
+      <span style="font-size:22px">${ig.icon}</span>
+      <div class="ig-info">
+        <div class="ig-name">${ig.nome}</div>
+        <div class="ig-meta">${ig.desc}</div>
+        ${!available ? `<div class="ig-meta" style="color:var(--red-bright)">Disponibile tra ${formatCooldown(ig.cooldown - elapsed)}</div>` : ''}
+      </div>
+      <button class="ig-btn" ${!available?'disabled':''} onclick="useIgiene('${ig.key}',${ig.hpVal},${ig.gem})">
+        ${ig.gem>0 ? `◆${ig.gem} ` : ''}+${ig.hpVal} HP
+      </button>
+    </div>`;
+  });
+  document.getElementById('locanda-igiene-list').innerHTML = html;
+}
+
+function formatCooldown(ms){
+  const h = Math.floor(ms/3600000);
+  const d = Math.floor(ms/86400000);
+  if(d>0) return d+'g';
+  return h+'h';
+}
+
+function useIgiene(key, hpVal, gemCost){
+  if(gemCost > 0 && cfg.gems < gemCost){toast('Gemme insufficienti!');return;}
+  if(gemCost > 0) cfg.gems -= gemCost;
+  cfg.hp = Math.min(cfg.hpMax, cfg.hp + hpVal);
+  gameState.igiene[key] = Date.now();
+  toast(`+${hpVal} HP`);
+  updateHUD();
+  renderIgiene();
+  saveAll();
+}
+
+/* ════════════════════════════════════════════════
+   STREGONE — EVOCAZIONI
+════════════════════════════════════════════════ */
+const EVOCAZIONI = [
+  {id:1, nome:"20 Flessioni", icon:"💪", desc:"Sforzo fisico breve. Evoca lo stregone.", nrgCost:5, diff:"media", artefici:["comun","comun"]},
+  {id:2, nome:"5 min Meditazione", icon:"🧘", desc:"Calma mentale rapida.", nrgCost:3, diff:"facile", artefici:["comun"]},
+  {id:3, nome:"50 Salti", icon:"⬆️", desc:"Sforzo cardio veloce.", nrgCost:8, diff:"alta", artefici:["raro","comun"]},
+  {id:4, nome:"Freddo — 30 sec", icon:"❄️", desc:"Esposizione al freddo. Difficile.", nrgCost:10, diff:"epica", artefici:["raro","raro"]},
+];
+
+const ARTEFICI_POOL = {
+  comun: [
+    {nome:"Caffè", icon:"☕", desc:"+15 NRG per 4 ore", effect:"nrg", val:15},
+    {nome:"Pozione Minore", icon:"🧪", desc:"+10 HP", effect:"hp", val:10},
+    {nome:"Spuntino Energetico", icon:"🍫", desc:"+8 NRG", effect:"nrg", val:8},
+  ],
+  raro: [
+    {nome:"Pozione Maggiore", icon:"⚗️", desc:"+25 HP", effect:"hp", val:25},
+    {nome:"Energy Drink", icon:"⚡", desc:"+25 NRG per 6 ore", effect:"nrg", val:25},
+    {nome:"Gemma Rara", icon:"💎", desc:"+1 Gemma", effect:"gem", val:1},
+  ]
+};
+
+function renderEvocazioni(){
+  const usate = gameState.evoUsate||0;
+  const maxEvo = cfg.evoMax;
+  document.getElementById('evo-count').textContent = `Evo: ${usate}/${maxEvo}`;
+  let html = '';
+  EVOCAZIONI.forEach(e=>{
+    const available = usate < maxEvo;
+    html += `
+    <div class="formula-card">
+      <div class="fo-head" onclick="toggleFo('evo-${e.id}')">
+        <div class="fo-icon">${e.icon}</div>
+        <div class="fo-info">
+          <div class="fo-name">${e.nome}</div>
+          <div class="fo-dur">Difficoltà: ${e.diff} · -${e.nrgCost} NRG</div>
+        </div>
+        <span class="pill-badge badge-purple">${e.artefici.length} artefici</span>
+      </div>
+      <div class="fo-body" id="evo-${e.id}">
+        <div style="font-size:11px;color:var(--text-dim);font-style:italic;margin-bottom:8px">${e.desc}</div>
+        <div style="font-size:10px;color:var(--text-dim)">Artefici possibili: ${e.artefici.map(t=>t==='raro'?'🔵 Raro':'⚪ Comune').join(', ')}</div>
+        <button class="fo-activate" ${!available?'disabled style="opacity:0.4;cursor:not-allowed"':''} onclick="eseguiEvocazione(${e.id})">
+          ${available?'⚡ Esegui Evocazione':'Max evocazioni raggiunte'}
+        </button>
+      </div>
+    </div>`;
+  });
+  document.getElementById('evocazioni-list').innerHTML = html;
+}
+
+function toggleFo(id){
+  const b = document.getElementById(id);
+  if(b) b.classList.toggle('open');
+}
+
+function eseguiEvocazione(evoId){
+  const e = EVOCAZIONI.find(x=>x.id===evoId);
+  if(!e) return;
+  if(gameState.evoUsate >= cfg.evoMax){toast('Max evocazioni raggiunte oggi!');return;}
+  cfg.nrg = Math.max(0, cfg.nrg - e.nrgCost);
+  gameState.evoUsate = (gameState.evoUsate||0)+1;
+  // Genera artefici
+  const guadagnati = e.artefici.map(tipo=>{
+    const pool = ARTEFICI_POOL[tipo]||ARTEFICI_POOL.comun;
+    const art = pool[Math.floor(Math.random()*pool.length)];
+    return {...art, id:Date.now()+Math.random(), tipo};
+  });
+  gameState.inventario = [...(gameState.inventario||[]), ...guadagnati];
+  const nomi = guadagnati.map(a=>a.icon+' '+a.nome).join(', ');
+  toast(`🧙 Stregone evocato! Ottenuto: ${nomi}`);
+  renderEvocazioni();
+  renderInventario();
+  updateHUD();
+  saveAll();
+}
+
+/* ════════════════════════════════════════════════
+   FORMULE MAGICHE
+════════════════════════════════════════════════ */
+const FORMULE = [
+  {id:1, nome:"Andare al lavoro in bici", icon:"🚲", desc:"+10 NRG persistente · +5 HP", dur:"30+ min", effects:{nrg:10,hp:5}},
+  {id:2, nome:"Stretching mattutino", icon:"🤸", desc:"+8 NRG · -1 sigillo se attivo", dur:"15 min", effects:{nrg:8,hp:0}},
+  {id:3, nome:"Leggere 30 minuti", icon:"📖", desc:"+10 XP Mente · +5 HP mentale", dur:"30 min", effects:{nrg:0,hp:5}},
+  {id:4, nome:"Bagno freddo", icon:"🚿", desc:"+15 NRG · +8 HP", dur:"10 min", effects:{nrg:15,hp:8}},
+  {id:5, nome:"Cucinare pasto sano", icon:"👨‍🍳", desc:"+8 HP · migliora ristoro locanda", dur:"30 min", effects:{nrg:0,hp:8}},
+];
+
+function renderFormule(){
+  let html = '';
+  const usate = gameState.formuleUsate||0;
+  FORMULE.forEach(f=>{
+    const available = usate < cfg.formulaMax;
+    html += `
+    <div class="formula-card">
+      <div class="fo-head" onclick="toggleFo('fo-${f.id}')">
+        <div class="fo-icon">${f.icon}</div>
+        <div class="fo-info">
+          <div class="fo-name">${f.nome}</div>
+          <div class="fo-dur">${f.dur}</div>
+        </div>
+        <span class="pill-badge badge-zen">Formula</span>
+      </div>
+      <div class="fo-body" id="fo-${f.id}">
+        <div style="font-size:11px;color:var(--text-dim);font-style:italic;margin-bottom:8px">${f.desc}</div>
+        <button class="fo-activate" ${!available?'disabled style="opacity:0.4;cursor:not-allowed"':''} onclick="usaFormula(${f.id})">
+          ${available?'✨ Attiva Formula':'Max formule per oggi'}
+        </button>
+      </div>
+    </div>`;
+  });
+  html += `<div style="padding:8px 0;font-family:'Cinzel',serif;font-size:8px;color:var(--text-dim);letter-spacing:1px;text-align:center">${usate}/${cfg.formulaMax} formule usate oggi</div>`;
+  document.getElementById('formule-list').innerHTML = html;
+}
+
+function usaFormula(id){
+  const f = FORMULE.find(x=>x.id===id);
+  if(!f) return;
+  if(gameState.formuleUsate >= cfg.formulaMax){toast('Max formule per oggi!');return;}
+  gameState.formuleUsate = (gameState.formuleUsate||0)+1;
+  if(f.effects.nrg) cfg.nrg = Math.min(cfg.nrgMax, cfg.nrg + f.effects.nrg);
+  if(f.effects.hp) cfg.hp = Math.min(cfg.hpMax, cfg.hp + f.effects.hp);
+  toast(`✨ Formula attivata! ${f.effects.nrg?'+'+f.effects.nrg+' NRG ':''} ${f.effects.hp?'+'+f.effects.hp+' HP':''}`);
+  renderFormule();
+  updateHUD();
+  saveAll();
+}
+
+/* ════════════════════════════════════════════════
+   INVENTARIO ARTEFICI
+════════════════════════════════════════════════ */
+function renderInventario(){
+  const inv = gameState.inventario||[];
+  if(!inv.length){
+    document.getElementById('inv-items').innerHTML = `<div class="dev-note">Nessun artefice. Evoca lo stregone per ottenerli.</div>`;
+    return;
+  }
+  let html = '';
+  inv.forEach(a=>{
+    html += `
+    <div class="st-item">
+      <div class="st-item-top">
+        <div class="st-ico">${a.icon}</div>
+        <div class="st-info">
+          <div class="st-name">${a.nome} <span class="pill-badge ${a.tipo==='raro'?'badge-blue':'badge-gold'}">${a.tipo||'comune'}</span></div>
+          <div class="st-desc">${a.desc}</div>
+        </div>
+      </div>
+      <button class="st-buy" onclick="usaArtefice('${a.id}')">🎒 Usa Artefice</button>
+    </div>`;
+  });
+  document.getElementById('inv-items').innerHTML = html;
+}
+
+function usaArtefice(id){
+  const idx = (gameState.inventario||[]).findIndex(a=>String(a.id)===String(id));
+  if(idx===-1) return;
+  const a = gameState.inventario[idx];
+  if(a.effect==='hp') cfg.hp = Math.min(cfg.hpMax, cfg.hp + a.val);
+  if(a.effect==='nrg') cfg.nrg = Math.min(cfg.nrgMax, cfg.nrg + a.val);
+  if(a.effect==='gem') cfg.gems += a.val;
+  gameState.inventario.splice(idx,1);
+  toast(`${a.icon} ${a.nome} usato! ${a.effect==='hp'?'+'+a.val+' HP':a.effect==='nrg'?'+'+a.val+' NRG':'+'+a.val+' Gemme'}`);
+  renderInventario();
+  updateHUD();
+  saveAll();
+}
+
+/* ════════════════════════════════════════════════
+   PILASTRI / AVATAR
+════════════════════════════════════════════════ */
+function xpToLevel(xp, base, mult){
+  let lv=1, threshold=base;
+  while(xp>=threshold){ lv++; xp-=threshold; threshold=Math.round(threshold*mult); }
+  return {lv, remaining:xp, next:threshold};
+}
+
+function renderPillars(){
+  const pillars = [
+    {key:'Corpo',icon:'⚔️',color:'#e06040',cat:'corpo'},
+    {key:'Mente',icon:'📚',color:'var(--blue)',cat:'mente'},
+    {key:'Anima',icon:'🌿',color:'var(--zen)',cat:'anima'},
+    {key:'Portafoglio',icon:'💼',color:'var(--gold)',cat:'portafoglio'},
+  ];
+  let html = '';
+  pillars.forEach(p=>{
+    const xp = cfg['xp'+p.key]||0;
+    const {lv,remaining,next} = xpToLevel(xp, cfg.xpPerLevel, cfg.xpMultiplier);
+    html += `
+    <div class="pillar-card" style="margin-bottom:6px;position:relative;overflow:hidden">
+      <div class="acc-bar ${getCatAccClass(p.cat)}"></div>
+      <div style="padding-left:8px">
+        <div class="pillar-icon">${p.icon}</div>
+      </div>
+      <div class="pillar-info">
+        <div class="pillar-name">${p.key}</div>
+        <div class="bar-row" style="margin:4px 0">
+          <div class="bar-track"><div class="bar-fill ${p.cat}" style="width:${(remaining/next*100).toFixed(1)}%"></div></div>
+          <div class="bar-val">${remaining}/${next}</div>
+        </div>
+        ${lv >= cfg.anfrattoLevel ? `<span class="stato-chip neutral">⚡ Anfratto disponibile</span>`:''}
+      </div>
+      <div class="pillar-xp">Lv ${lv}</div>
+    </div>`;
+  });
+  document.getElementById('pillars-list').innerHTML = html;
+}
+
+/* ════════════════════════════════════════════════
+   STATI ATTIVI
+════════════════════════════════════════════════ */
+function renderStatiRow(){
+  const row = document.getElementById('stati-row');
+  const stati = gameState.statiAttivi||[];
+  if(!stati.length){row.innerHTML='';return;}
+  row.innerHTML = stati.map(s=>`
+    <span class="stato-chip ${s.tipo==='neg'?'neg':'pos'}">${s.icon} ${s.effetto}</span>
+  `).join('');
+}
+
+function renderStatiList(){
+  const list = document.getElementById('stati-list');
+  const stati = gameState.statiAttivi||[];
+  if(!stati.length){list.innerHTML='<div class="dev-note">Nessun cambiamento di stato attivo.</div>';return;}
+  let html = '';
+  stati.forEach(s=>{
+    html += `
+    <div class="card" style="margin-bottom:6px">
+      <div class="card-body" style="display:flex;align-items:center;gap:10px;padding:10px 14px">
+        <span style="font-size:20px">${s.icon}</span>
+        <div style="flex:1">
+          <div class="row-name">${s.nome}</div>
+          <div class="row-sub"><span class="${s.tipo==='neg'?'neg':'pos'}">${s.effetto}</span> — ${s.desc}</div>
+        </div>
+        <div style="display:flex;flex-direction:column;gap:4px">
+          <button onclick="curaStato(${s.id})" class="ig-btn">Cura</button>
+        </div>
+      </div>
+    </div>`;
+  });
+  html += `
+  <button class="btn-ghost" onclick="addStatoNeg()">＋ Dichiara abitudine negativa</button>`;
+  list.innerHTML = html;
+}
+
+function curaStato(id){
+  gameState.statiAttivi = gameState.statiAttivi.filter(s=>s.id!==id);
+  renderStatiList();
+  renderStatiRow();
+  toast('Stato curato!');
+  saveAll();
+}
+
+function addStatoNeg(){
+  const nome = prompt('Nome abitudine negativa (es. "Telefono al risveglio"):');
+  if(!nome) return;
+  const effetto = prompt('Effetto (es. "assopimento", "avvelenamento", "paralisi"):') || 'assopimento';
+  gameState.statiAttivi.push({id:Date.now(), nome, tipo:'neg', effetto, icon:'⚠️', desc:'-5 NRG'});
+  renderStatiList();
+  renderStatiRow();
+  saveAll();
+}
+
+/* ════════════════════════════════════════════════
+   EMPORIO
+════════════════════════════════════════════════ */
+function renderEmporio(){
+  const items = cfg.emporioItems||[];
+  const acquired = gameState.emporioAcquistati||[];
+  let html = `<div class="sec-head">La tua Wishlist</div>`;
+  if(!items.length){html+='<div class="dev-note">Aggiungi premi nel pannello developer → Emporio.</div>';}
+  items.forEach(item=>{
+    const bought = acquired.includes(item.id);
+    const canAfford = cfg.gold >= item.costo;
+    html += `
+    <div class="emp-item ${bought?'unlocked':!canAfford?'locked':''}" onclick="${!bought&&canAfford?'buyEmpItem('+item.id+')':''}">
+      <div class="emp-body">
+        <div style="font-size:28px;margin-bottom:6px">${item.icon}</div>
+        <div class="emp-name">${item.nome}</div>
+        <div class="emp-desc">${item.desc}</div>
+        <div class="emp-price">◈ ${item.costo} <span class="emp-price-label">${item.tipo}</span></div>
+        ${bought?`<div style="margin-top:8px;font-family:'Cinzel',serif;font-size:9px;color:var(--green);letter-spacing:1px">✓ ACQUISTATO</div>`:''}
+        ${!bought&&!canAfford?`<div style="margin-top:8px;font-family:'Cinzel',serif;font-size:9px;color:var(--text-dim);letter-spacing:1px">Mancano ◈ ${item.costo-cfg.gold}</div>`:''}
+      </div>
+    </div>`;
+  });
+  document.getElementById('emporio-list').innerHTML = html;
+}
+
+function buyEmpItem(id){
+  const item = (cfg.emporioItems||[]).find(x=>x.id===id);
+  if(!item) return;
+  if(cfg.gold < item.costo){toast('Monete insufficienti!');return;}
+  cfg.gold -= item.costo;
+  gameState.emporioAcquistati = [...(gameState.emporioAcquistati||[]), id];
+  gameState.goldLog.unshift({desc:`Acquistato: ${item.nome}`, val:-item.costo, time:'ora'});
+  toast(`🎉 Acquistato: ${item.nome}!`);
+  renderEmporio();
+  updateHUD();
+  saveAll();
+}
+
+/* ════════════════════════════════════════════════
+   GOLD LOG
+════════════════════════════════════════════════ */
+function renderGoldLog(){
+  const log = gameState.goldLog||[];
+  document.getElementById('gold-log').innerHTML = log.slice(0,8).map(entry=>`
+    <div class="card-row" style="padding:6px 0">
+      <div class="row-info"><div class="row-name" style="font-size:11px">${entry.desc}</div></div>
+      <span style="font-family:'Cinzel',serif;font-size:12px;color:${entry.val>0?'var(--green)':'var(--red-bright)'}">${entry.val>0?'+':''}${entry.val}</span>
+    </div>
+  `).join('') || '<div class="dev-note">Nessuna transazione.</div>';
+}
+
+/* ════════════════════════════════════════════════
+   HP / NRG INFLUENCES
+════════════════════════════════════════════════ */
+function renderHPInfluences(){
+  const el = document.getElementById('hp-influences');
+  if(!el) return;
+  el.innerHTML = `
+  <div class="card-row" style="padding:7px 0">
+    <span class="row-icon">🏠</span><div class="row-info"><div class="row-name">Ordine Locanda</div></div>
+    <span style="font-family:'Cinzel',serif;font-size:11px;color:${gameState.locanda.ordine>=80?'var(--green)':'var(--text-dim)'}">
+      ${gameState.locanda.ordine>=80?'+'+cfg.locOrderHp+' HP':'—'}</span>
+  </div>
+  <div class="card-row" style="padding:7px 0">
+    <span class="row-icon">😵</span><div class="row-info"><div class="row-name">Stordimenti questa sett.</div></div>
+    <span style="font-family:'Cinzel',serif;font-size:11px;color:${gameState.stordimenti>0?'var(--red-bright)':'var(--green)'}">${gameState.stordimenti}/${cfg.stunDeath}</span>
+  </div>`;
+}
+function renderNRGFactors(){
+  const el = document.getElementById('nrg-factors');
+  if(!el) return;
+  el.innerHTML = `
+  <div class="card-row" style="padding:7px 0">
+    <span class="row-icon">🌙</span><div class="row-info"><div class="row-name">Ore dormite ieri</div></div>
+    <span style="font-family:'Cinzel',serif;font-size:11px;color:${gameState.locanda.oreSonno>=cfg.locSleepIdeal?'var(--green)':'var(--text-dim)'}">${gameState.locanda.oreSonno||0}h</span>
+  </div>
+  <div class="card-row" style="padding:7px 0">
+    <span class="row-icon">❤️</span><div class="row-info"><div class="row-name">HP correnti</div></div>
+    <span style="font-family:'Cinzel',serif;font-size:11px;color:var(--hp-color)">${cfg.hp}</span>
+  </div>`;
+}
+
+/* ════════════════════════════════════════════════
+   DEV PANEL
+════════════════════════════════════════════════ */
+function openDevPanel(){
+  // Populate fields
+  const fields = {
+    'dev-hp':cfg.hp,'dev-nrg':cfg.nrg,'dev-gold':cfg.gold,'dev-gems':cfg.gems,
+    'dev-hp-max':cfg.hpMax,'dev-revive-cost':cfg.reviveCost,'dev-stun-death':cfg.stunDeath,'dev-nrg-max':cfg.nrgMax,
+    'dev-xp-corpo':cfg.xpCorpo,'dev-xp-mente':cfg.xpMente,'dev-xp-anima':cfg.xpAnima,'dev-xp-portafoglio':cfg.xpPortafoglio,
+    'dev-xp-per-level':cfg.xpPerLevel,'dev-xp-multiplier':cfg.xpMultiplier,
+    'dev-loot-base':cfg.lootBase,'dev-loot-scale':cfg.lootScale,'dev-loot-steal-pct':cfg.lootStealPct,'dev-varco-margin':cfg.varcoMargin,
+    'dev-xp-varco':cfg.xpVarco,'dev-hp-varco':cfg.hpVarco,
+    'dev-m-lv1-d0':cfg.mLv1D0,'dev-m-lv2-d0':cfg.mLv2D0,'dev-m-lv3-d0':cfg.mLv3D0,'dev-m-lv3-inc':cfg.mLv3Inc,
+    'dev-m-dmg-1':cfg.mDmg1,'dev-m-dmg-2':cfg.mDmg2,'dev-m-dmg-3':cfg.mDmg3,'dev-m-dmg-sent':cfg.mDmgSent,
+    'dev-m-loot':cfg.mLoot,'dev-m-steal':cfg.mSteal,
+    'dev-loc-acqua-min':cfg.locAcquaMin,'dev-loc-acqua-ideal':cfg.locAcquaIdeal,
+    'dev-loc-sleep-min':cfg.locSleepMin,'dev-loc-sleep-ideal':cfg.locSleepIdeal,
+    'dev-loc-order-hp':cfg.locOrderHp,'dev-loc-ideal-nrg':cfg.locIdealNrg,
+    'dev-loc-igiene-hp':cfg.locIgieneHp,'dev-loc-haircut-hp':cfg.locHaircutHp,
+    'dev-loc-beard-hp':cfg.locBeardHp,'dev-loc-igiene-limit':cfg.locIgieneLimit,
+    'dev-evo-max':cfg.evoMax,'dev-formula-max':cfg.formulaMax,
+    'dev-habit-curse-days':cfg.habitCurseDays,'dev-habit-heal-days':cfg.habitHealDays,
+    'dev-anfratto-level':cfg.anfrattoLevel,'dev-anfratto-loot-mult':cfg.anfrattoLootMult,
+    'dev-gem-value':cfg.gemValue,'dev-haircut-gems':cfg.haircutGems,
+  };
+  Object.entries(fields).forEach(([id,val])=>{
+    const el = document.getElementById(id);
+    if(el) el.value = val;
+  });
+  renderDevEmpItems();
+  document.getElementById('dev-overlay').classList.add('active');
+}
+
+function closeDevPanel(){
+  document.getElementById('dev-overlay').classList.remove('active');
+}
+
+function saveDevPanel(){
+  const readF = id => +document.getElementById(id)?.value || 0;
+  cfg.hp=readF('dev-hp'); cfg.nrg=readF('dev-nrg'); cfg.gold=readF('dev-gold'); cfg.gems=readF('dev-gems');
+  cfg.hpMax=readF('dev-hp-max'); cfg.reviveCost=readF('dev-revive-cost'); cfg.stunDeath=readF('dev-stun-death'); cfg.nrgMax=readF('dev-nrg-max');
+  cfg.xpCorpo=readF('dev-xp-corpo'); cfg.xpMente=readF('dev-xp-mente'); cfg.xpAnima=readF('dev-xp-anima'); cfg.xpPortafoglio=readF('dev-xp-portafoglio');
+  cfg.xpPerLevel=readF('dev-xp-per-level'); cfg.xpMultiplier=+document.getElementById('dev-xp-multiplier')?.value||1.5;
+  cfg.lootBase=readF('dev-loot-base'); cfg.lootScale=+document.getElementById('dev-loot-scale')?.value||1;
+  cfg.lootStealPct=readF('dev-loot-steal-pct'); cfg.varcoMargin=readF('dev-varco-margin');
+  cfg.xpVarco=readF('dev-xp-varco'); cfg.hpVarco=readF('dev-hp-varco');
+  cfg.mLv1D0=readF('dev-m-lv1-d0'); cfg.mLv2D0=readF('dev-m-lv2-d0'); cfg.mLv3D0=readF('dev-m-lv3-d0'); cfg.mLv3Inc=readF('dev-m-lv3-inc');
+  cfg.mDmg1=readF('dev-m-dmg-1'); cfg.mDmg2=readF('dev-m-dmg-2'); cfg.mDmg3=readF('dev-m-dmg-3'); cfg.mDmgSent=readF('dev-m-dmg-sent');
+  cfg.mLoot=readF('dev-m-loot'); cfg.mSteal=readF('dev-m-steal');
+  cfg.locAcquaMin=readF('dev-loc-acqua-min'); cfg.locAcquaIdeal=readF('dev-loc-acqua-ideal');
+  cfg.locSleepMin=readF('dev-loc-sleep-min'); cfg.locSleepIdeal=readF('dev-loc-sleep-ideal');
+  cfg.locOrderHp=readF('dev-loc-order-hp'); cfg.locIdealNrg=readF('dev-loc-ideal-nrg');
+  cfg.locIgieneHp=readF('dev-loc-igiene-hp'); cfg.locHaircutHp=readF('dev-loc-haircut-hp');
+  cfg.locBeardHp=readF('dev-loc-beard-hp'); cfg.locIgieneLimit=readF('dev-loc-igiene-limit');
+  cfg.evoMax=readF('dev-evo-max'); cfg.formulaMax=readF('dev-formula-max');
+  cfg.habitCurseDays=readF('dev-habit-curse-days'); cfg.habitHealDays=readF('dev-habit-heal-days');
+  cfg.anfrattoLevel=readF('dev-anfratto-level'); cfg.anfrattoLootMult=+document.getElementById('dev-anfratto-loot-mult')?.value||2.5;
+  cfg.gemValue=readF('dev-gem-value'); cfg.haircutGems=readF('dev-haircut-gems');
+  // emporioItems saved separately
+  saveAll();
+  updateHUD();
+  renderAll();
+  closeDevPanel();
+  toast('✓ Config salvata e applicata!');
+}
+
+function resetDevPanel(){
+  if(!confirm('Reset ai valori default? La config attuale verrà persa.')) return;
+  cfg = {...DEFAULT_CONFIG};
+  saveAll();
+  openDevPanel();
+  toast('Reset ai valori default');
+}
+
+/* DEV — azioni debug */
+function devAddMonete(n){cfg.gold+=n;updateHUD();toast('+'+n+' monete');}
+function devAddGems(n){cfg.gems+=n;updateHUD();toast('+'+n+' gemme');}
+function devDamageHP(n){cfg.hp=Math.max(0,cfg.hp-n);updateHUD();checkStordimento();toast('-'+n+' HP');}
+function devHealHP(n){cfg.hp=Math.min(cfg.hpMax,cfg.hp+n);updateHUD();toast('+'+n+' HP');}
+function devTriggerStordimento(){cfg.hp=0;checkStordimento();updateHUD();}
+function devResetWeek(){
+  gameState.varchi.forEach(v=>{v.done=false;v.late=false;});
+  gameState.mostri=[];
+  gameState.stordimenti=0;
+  gameState.evoUsate=0;
+  gameState.formuleUsate=0;
+  saveAll();
+  renderAll();
+  toast('Reset settimana completato');}
+
+/* DEV — emporio items editor */
+function renderDevEmpItems(){
+  const items = cfg.emporioItems||[];
+  const container = document.getElementById('dev-emp-items');
+  let html = '';
+  items.forEach((item,i)=>{
+    html += `
+    <div class="dev-field" style="grid-column:1/-1;display:flex;align-items:center;gap:8px;margin-bottom:6px">
+      <input class="dev-inp" style="flex:2" value="${item.nome}" onchange="updateEmpItem(${i},'nome',this.value)" placeholder="Nome">
+      <input class="dev-inp" style="flex:3" value="${item.desc}" onchange="updateEmpItem(${i},'desc',this.value)" placeholder="Descrizione">
+      <input class="dev-inp" style="width:70px" type="number" value="${item.costo}" onchange="updateEmpItem(${i},'costo',+this.value)" placeholder="◈">
+      <input class="dev-inp" style="width:40px" value="${item.icon}" onchange="updateEmpItem(${i},'icon',this.value)" placeholder="icon">
+      <button onclick="removeEmpItem(${i})" style="background:none;border:none;color:var(--text-dim);cursor:pointer;font-size:16px;padding:4px">✕</button>
+    </div>`;
+  });
+  container.innerHTML = html;
+}
+
+function updateEmpItem(i,key,val){cfg.emporioItems[i][key]=val;}
+function removeEmpItem(i){cfg.emporioItems.splice(i,1);renderDevEmpItems();}
+function devAddEmpItem(){
+  cfg.emporioItems.push({id:Date.now(),nome:"Nuovo Premio",desc:"Descrizione",costo:100,tipo:"oggetto",icon:"🎁",sbloccato:false});
+  renderDevEmpItems();
+}
+
+/* ════════════════════════════════════════════════
+   RENDER ALL (init + refresh)
+════════════════════════════════════════════════ */
+function renderAll(){
+  renderVarchi();
+  renderMostri();
+  renderWeekGrid();
+  renderRoutine();
+  renderLocanda();
+  renderIgiene();
+  renderEvocazioni();
+  renderFormule();
+  renderInventario();
+  renderPillars();
+  renderStatiList();
+  renderStatiRow();
+  renderEmporio();
+  renderGoldLog();
+  renderHPInfluences();
+  renderNRGFactors();
+  // update badge counts
+  document.getElementById('badge-varchi').textContent = gameState.varchi.filter(v=>!v.done).length;
+  document.getElementById('badge-mostri').textContent = gameState.mostri.filter(m=>!m.done).length;
+}
+
+/* ════════════════════════════════════════════════
+   INIT
+════════════════════════════════════════════════ */
+document.addEventListener('DOMContentLoaded', ()=>{
+  updateHUD();
+  renderAll();
+});
+</script>
+</body>
+</html>
