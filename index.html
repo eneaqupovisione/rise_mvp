@@ -212,6 +212,20 @@ body::before{content:'';position:fixed;inset:0;background:radial-gradient(ellips
 .ov-title{font-family:'Cinzel',serif;font-size:16px;color:var(--text);letter-spacing:1px}
 .ov-sub{font-size:11px;color:var(--text-dim);font-style:italic;margin-top:4px}
 .ov-body{padding:10px 16px 16px}
+/* Locandiere overlay */
+.loc-section{border-bottom:1px solid var(--border)}
+.loc-sec-hd{display:flex;align-items:center;justify-content:space-between;padding:9px 16px;cursor:pointer;user-select:none;font-family:'Cinzel',serif;font-size:9px;letter-spacing:1px;color:var(--text-mid);text-transform:uppercase}
+.loc-sec-hd:hover{color:var(--text)}
+.loc-arrow{font-size:10px;color:var(--text-dim);transition:transform 0.2s}
+.loc-sec-body{padding:4px 16px 12px;display:none}
+.loc-sec-body.open{display:block}
+.loc-grid{display:grid;grid-template-columns:1fr 1fr;gap:6px 10px;margin-top:4px}
+.loc-field{display:flex;flex-direction:column;gap:3px}
+.loc-field label{font-family:'Cinzel',serif;font-size:7px;letter-spacing:1px;color:var(--text-dim);text-transform:uppercase}
+.loc-inp{background:var(--surface2);border:1px solid var(--border);border-radius:1px;padding:5px 7px;font-family:'Cinzel',serif;font-size:10px;color:var(--text);width:100%;box-sizing:border-box}
+.loc-inp:focus{outline:none;border-color:var(--gold-dim)}
+.loc-subsec{font-family:'Cinzel',serif;font-size:7px;letter-spacing:2px;color:var(--gold);text-transform:uppercase;margin:10px 0 6px}
+.loc-note{font-size:10px;color:var(--text-dim);font-style:italic;margin-bottom:10px;line-height:1.5}
 
 /* bottom sheet */
 .sheet-ov{position:fixed;inset:0;z-index:200;background:rgba(0,0,0,0);pointer-events:none;transition:background 0.3s;display:flex;align-items:flex-end;justify-content:center}
@@ -499,6 +513,30 @@ body::before{content:'';position:fixed;inset:0;background:radial-gradient(ellips
   </div>
 </div>
 
+<!-- ██████  STATUS BAR GLOBALE  ██████ -->
+<div id="global-status-bar" style="display:flex;align-items:center;background:var(--surface2);border-bottom:1px solid var(--border);flex-shrink:0;min-height:32px">
+  <!-- Fase del giorno -->
+  <div id="gsb-fase" onclick="onFaseClick()"
+    style="display:flex;align-items:center;gap:5px;padding:5px 12px;cursor:pointer;border-right:1px solid var(--border);flex-shrink:0;transition:background 0.15s"
+    onmouseover="this.style.background='rgba(255,255,255,0.03)'" onmouseout="this.style.background=''">
+    <span id="gsb-fase-icon" style="font-size:13px">🌅</span>
+    <span id="gsb-fase-label" style="font-family:'Cinzel',serif;font-size:8px;letter-spacing:1.5px;text-transform:uppercase;color:var(--gold)">Mattina</span>
+  </div>
+  <!-- Semaforo drain NRG -->
+  <div id="gsb-drain" onclick="openSheet('gsb-nrg')"
+    style="display:flex;align-items:center;justify-content:center;padding:5px 10px;cursor:pointer;border-right:1px solid var(--border);flex-shrink:0;transition:background 0.15s"
+    onmouseover="this.style.background='rgba(255,255,255,0.03)'" onmouseout="this.style.background=''">
+    <span id="gsb-drain-dot" style="font-size:14px">🟡</span>
+  </div>
+  <!-- Stati attivi (emoji) -->
+  <div id="gsb-stati" onclick="openSheet('gsb-stati')"
+    style="display:flex;align-items:center;gap:3px;padding:5px 10px;cursor:pointer;flex:1;min-height:32px;transition:background 0.15s"
+    onmouseover="this.style.background='rgba(255,255,255,0.03)'" onmouseout="this.style.background=''">
+    <span id="gsb-stati-icons" style="font-size:13px;letter-spacing:1px"></span>
+    <span id="gsb-stati-empty" style="font-family:'Cinzel',serif;font-size:7px;color:var(--text-dim);letter-spacing:1px">nessuno stato</span>
+  </div>
+</div>
+
 <!-- stati attivi -->
 <div class="stati-row" id="stati-row"></div>
 
@@ -509,19 +547,23 @@ body::before{content:'';position:fixed;inset:0;background:radial-gradient(ellips
   <div class="view active" id="view-oggi">
     <div class="view-header">
       <div>
-        <div class="view-sub" id="avv-subtitle">Dungeon — Settimana I</div>
-        <div class="view-title">Avventura</div>
+        <div class="view-sub" id="avv-subtitle">Avventura — Settimana I</div>
+        <div class="view-title">Dungeon</div>
       </div>
-      <div id="boss-attivo-badge" style="display:none" class="pill-badge badge-purple">👁 Boss Attivo</div>
+      <div style="display:flex;gap:6px;align-items:center">
+        <div id="boss-attivo-badge" style="display:none" class="pill-badge badge-purple">👁 Boss Attivo</div>
+        <button onclick="apriMappa()" style="display:flex;align-items:center;gap:4px;padding:5px 10px;background:transparent;border:1px solid var(--border-light);border-radius:2px;font-family:'Cinzel',serif;font-size:7px;letter-spacing:1px;text-transform:uppercase;color:var(--text-dim);cursor:pointer" onmouseover="this.style.color='var(--gold)';this.style.borderColor='var(--gold-dim)'" onmouseout="this.style.color='var(--text-dim)';this.style.borderColor='var(--border-light)'">🗺️ Mappa</button>
+      </div>
     </div>
     <div class="inner-tabs">
-      <div class="inner-tab active" onclick="switchITab('oggi','dungeon')">⚔ Dungeon <span class="nav-badge" id="badge-varchi">5</span></div>
+      <div class="inner-tab active" onclick="switchITab('oggi','dungeon')">⚔ Avventura <span class="nav-badge" id="badge-varchi">5</span></div>
       <div class="inner-tab" onclick="switchITab('oggi','nemici')">🎯 Taglie <span class="nav-badge" id="badge-nemici">0</span></div>
       <div class="inner-tab" onclick="switchITab('oggi','formule')">✨ Formule <span class="nav-badge" id="badge-formule">0</span></div>
     </div>
 
     <!-- TAB DUNGEON (varchi) -->
     <div class="itab-content active" id="oggi-dungeon">
+      <div id="formule-dungeon-banner" style="display:none"></div>
       <div id="boss-today-banner" style="display:none"></div>
       <div class="scroll-area" id="varchi-list"></div>
     </div>
@@ -541,9 +583,12 @@ body::before{content:'';position:fixed;inset:0;background:radial-gradient(ellips
   <!-- ══════  2. MAPPA  ══════ -->
   <div class="view" id="view-settimana">
     <div class="view-header">
-      <div>
-        <div class="view-sub">Pianificazione</div>
-        <div class="view-title">La Mappa</div>
+      <div style="display:flex;align-items:center;gap:10px">
+        <button onclick="tornaAlDungeon()" style="display:flex;align-items:center;gap:4px;padding:5px 8px;background:transparent;border:1px solid var(--border-light);border-radius:2px;font-family:'Cinzel',serif;font-size:7px;letter-spacing:1px;text-transform:uppercase;color:var(--text-dim);cursor:pointer;flex-shrink:0" onmouseover="this.style.color='var(--text)';this.style.borderColor='var(--border-light)'" onmouseout="this.style.color='var(--text-dim)';this.style.borderColor='var(--border-light)'">← Dungeon</button>
+        <div>
+          <div class="view-sub">Pianificazione</div>
+          <div class="view-title">La Mappa</div>
+        </div>
       </div>
       <div style="display:flex;gap:6px;align-items:center">
         <div id="template-badge" class="pill-badge badge-purple" style="cursor:pointer" onclick="openTemplateManager()">Template</div>
@@ -553,7 +598,7 @@ body::before{content:'';position:fixed;inset:0;background:radial-gradient(ellips
     <!-- Inner tabs -->
     <div class="inner-tabs">
       <div class="inner-tab active" onclick="switchITab('settimana','routine')">⚔ Settimana</div>
-      <div class="inner-tab" onclick="switchITab('settimana','longterm')">🗓 Long Term</div>
+      <div class="inner-tab" onclick="switchITab('settimana','longterm')">📅 Mese</div>
     </div>
 
     <!-- TAB: ROUTINE SETTIMANALE -->
@@ -561,20 +606,27 @@ body::before{content:'';position:fixed;inset:0;background:radial-gradient(ellips
       <div class="scroll-area">
         <div class="week-grid" id="week-grid"></div>
         <div style="display:flex;align-items:center;justify-content:space-between;margin:4px 0 6px">
-          <div class="sec-head" style="margin:0;flex:1">Routine Settimanale</div>
+          <div class="sec-head" style="margin:0;flex:1">Attività</div>
           <button id="reorder-toggle" onclick="toggleReorder()" style="background:none;border:1px solid var(--border);border-radius:2px;padding:4px 10px;font-family:'Cinzel',serif;font-size:7px;letter-spacing:1px;color:var(--text-dim);cursor:pointer;text-transform:uppercase">⇅ Riordina</button>
         </div>
         <div id="routine-list"></div>
         <button class="btn-ghost" onclick="openAddVarco()">＋ Aggiungi attività ricorrente</button>
-        <div style="display:flex;gap:6px;margin-top:4px">
-          <button class="btn-main btn-purple" style="flex:1;padding:9px;font-size:8px;letter-spacing:1px" onclick="saveAsTemplate('blocco')">
+        <div style="margin-top:6px">
+          <button class="btn-main btn-purple" style="width:100%;padding:9px;font-size:8px;letter-spacing:1px"
+            onclick="openTemplateSaveModal()">
             📦 Salva come template settimana
           </button>
         </div>
+        <!-- Pratiche (Formule Magiche) -->
+        <div style="display:flex;align-items:center;justify-content:space-between;margin:14px 0 6px">
+          <div class="sec-head" style="margin:0;flex:1">Pratiche</div>
+        </div>
+        <div id="formule-mappa-list"></div>
+        <button class="btn-ghost" style="margin-top:4px" onclick="_formulaMappaForm='new';renderFormuleMappa()">✨ Aggiungi Pratica</button>
       </div>
     </div>
 
-    <!-- TAB: LONG TERM -->
+    <!-- TAB: MESE (ex Long Term) -->
     <div class="itab-content" id="settimana-longterm">
       <!-- toggle griglia/lista -->
       <div style="display:flex;border-bottom:1px solid var(--border);flex-shrink:0">
@@ -619,48 +671,123 @@ body::before{content:'';position:fixed;inset:0;background:radial-gradient(ellips
     </div>
   </div>
 
-  <!-- ══════  3. LOCANDA  ══════ -->
+  <!-- LOCANDIERE OVERLAY -->
+  <div class="overlay" id="overlay-locandiere" onclick="closeLocandiere(event)">
+    <div class="overlay-panel" style="width:94%;max-width:400px;max-height:90vh">
+      <div class="ov-head">
+        <button class="ov-close" onclick="closeLocandiere()">✕</button>
+        <div class="ov-title">Il Locandiere</div>
+        <div class="ov-sub">Soglie & gestione della Locanda</div>
+      </div>
+      <div class="ov-body" style="padding:0 0 16px">
+
+        <!-- ORARI -->
+        <div class="loc-section">
+          <div class="loc-sec-hd" onclick="toggleLocSec('orari')">
+            <span>🕐 Orari Pasti</span><span class="loc-arrow" id="loc-arrow-orari">▾</span>
+          </div>
+          <div class="loc-sec-body" id="loc-sec-orari">
+            <div class="loc-note">A questi orari si aprirà il prompt per registrare il pasto.</div>
+            <div class="loc-grid">
+              <div class="loc-field"><label>Pranzo</label><input class="loc-inp" id="loc-ora-pranzo" type="time"></div>
+              <div class="loc-field"><label>Cena</label><input class="loc-inp" id="loc-ora-cena" type="time"></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- SOGLIE ALIMENTARI -->
+        <div class="loc-section">
+          <div class="loc-sec-hd" onclick="toggleLocSec('soglie')">
+            <span>🎯 Soglie Giornaliere</span><span class="loc-arrow" id="loc-arrow-soglie">▾</span>
+          </div>
+          <div class="loc-sec-body" id="loc-sec-soglie">
+            <div class="loc-note">Questi valori determinano le barre di avanzamento nella Locanda.</div>
+            <div class="loc-grid">
+              <div class="loc-field">
+                <label>🌙 Sonno target (ore)</label>
+                <input class="loc-inp" id="loc-sleep-target" type="number" min="4" max="12" step="0.5">
+              </div>
+              <div class="loc-field">
+                <label>💧 Acqua target (bicchieri 200ml)</label>
+                <input class="loc-inp" id="loc-acqua-target" type="number" min="1" max="20">
+              </div>
+              <div class="loc-field">
+                <label>🥦 Verdura target (porzioni)</label>
+                <input class="loc-inp" id="loc-verdura-target" type="number" min="1" max="10">
+              </div>
+              <div class="loc-field">
+                <label>🍎 Frutta target (porzioni)</label>
+                <input class="loc-inp" id="loc-frutta-target" type="number" min="1" max="10">
+              </div>
+              <div class="loc-field">
+                <label>🥩 Proteine target (30g)</label>
+                <input class="loc-inp" id="loc-proteine-target" type="number" min="1" max="10">
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- IGIENE -->
+        <div class="loc-section">
+          <div class="loc-sec-hd" onclick="toggleLocSec('igiene')">
+            <span>🧼 Igiene & Cura</span><span class="loc-arrow" id="loc-arrow-igiene">▾</span>
+          </div>
+          <div class="loc-sec-body" id="loc-sec-igiene">
+            <div class="loc-note">Cadenza ideale e limite massimo di occorrenze per periodo.</div>
+            <div id="loc-igiene-list"></div>
+          </div>
+        </div>
+
+        <div style="padding:12px 16px 0">
+          <button onclick="saveLocandiere()" class="btn-main" style="width:100%;padding:11px;font-size:9px;letter-spacing:2px">💾 Applica & Salva</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+    <!-- ══════  3. LOCANDA  ══════ -->
   <div class="view" id="view-locanda">
     <div class="view-header">
       <div>
-        <div class="view-sub">Ristoro & Ordine</div>
+        <div class="view-sub">Ristoro & Cura</div>
         <div class="view-title">La Locanda</div>
       </div>
-      <div id="locanda-order-badge" class="pill-badge badge-gold">Ordine 70%</div>
-    </div>
-    <!-- NRG alert -->
-    <div id="locanda-nrg-alert" style="display:none;padding:6px 14px;background:rgba(154,48,48,0.15);border-bottom:1px solid var(--red-dim);font-family:'Cinzel',serif;font-size:8px;letter-spacing:1px;color:var(--red-bright);text-align:center">
-      ⚠ ENERGIA CRITICA — È ORA DI DORMIRE
-    </div>
-    <!-- Fase attuale + drain -->
-    <div id="locanda-fase-bar" style="display:flex;align-items:center;justify-content:space-between;padding:6px 14px;border-bottom:1px solid var(--border);flex-shrink:0;background:var(--surface2)">
-      <span id="locanda-fase-label" style="font-family:'Cinzel',serif;font-size:9px;letter-spacing:2px;text-transform:uppercase;color:var(--gold)">MATTINA</span>
-      <span id="locanda-drain-label" style="font-family:'Cinzel',serif;font-size:8px;color:var(--text-dim)">drain ⚡ —</span>
-    </div>
-    <div class="scroll-area">
-      <!-- SONNO -->
-      <div class="sec-head">🌙 Riposo</div>
-      <div id="locanda-sleep-list"></div>
-      <!-- LOG RAPIDO FASE -->
-      <div class="sec-head" style="margin-top:4px">⚡ Log Rapido — <span id="fase-quick-label" style="color:var(--gold)">Fase attuale</span></div>
-      <div id="locanda-quick-log"></div>
-      <!-- RIEPILOGO GIORNATA -->
-      <div class="sec-head" style="margin-top:4px">📊 Riepilogo Giornata</div>
-      <div id="locanda-food-summary"></div>
-      <!-- ORDINE -->
-      <div class="sec-head" style="margin-top:4px">🏠 Ordine Locanda</div>
-      <div id="locanda-order-list"></div>
-      <!-- STORICO & MORNING -->
-      <div class="sec-head" style="margin-top:4px">📈 NRG Base & Storico</div>
-      <div id="locanda-nrg-history"></div>
-      <!-- IGIENE -->
-      <div class="sec-head" style="margin-top:4px">🧼 Igiene Personale</div>
-      <div id="locanda-igiene-list"></div>
-      <!-- EFFETTI + CONFERMA -->
-      <div id="locanda-effects-preview" style="padding:8px 12px;background:var(--surface);border:1px solid var(--border);border-radius:2px;font-family:'Cinzel',serif;font-size:9px;letter-spacing:1px;color:var(--text-dim);text-align:center;margin-top:4px">
-        Effetti stimati: —
+      <div style="display:flex;gap:6px;align-items:center">
+        <div id="locanda-order-badge" class="pill-badge badge-gold">Ordine 70%</div>
+        <button onclick="openLocandiere()" style="display:flex;align-items:center;gap:4px;padding:5px 10px;background:transparent;border:1px solid var(--border-light);border-radius:2px;font-family:'Cinzel',serif;font-size:7px;letter-spacing:1px;text-transform:uppercase;color:var(--text-dim);cursor:pointer" onmouseover="this.style.color='var(--gold)';this.style.borderColor='var(--gold-dim)'" onmouseout="this.style.color='var(--text-dim)';this.style.borderColor='var(--border-light)'">🍺 Locandiere</button>
       </div>
-      <button class="btn-main" style="margin-top:8px" onclick="saveLocanda()">Conferma Giornata</button>
+    </div>
+    <!-- Inner tabs -->
+    <div class="inner-tabs">
+      <div class="inner-tab active" onclick="switchITab('locanda','salute')">🌿 Salute</div>
+      <div class="inner-tab" onclick="switchITab('locanda','igiene')">🧼 Igiene</div>
+      <div class="inner-tab" onclick="switchITab('locanda','averi')">🏺 Averi</div>
+    </div>
+
+    <!-- TAB SALUTE -->
+    <div class="itab-content active" id="locanda-salute">
+      <div class="scroll-area">
+        <div class="sec-head">Valori</div>
+        <div id="locanda-sleep-list"></div>
+        <div id="locanda-quick-log"></div>
+        <div id="locanda-food-summary"></div>
+        <div id="locanda-nrg-history"></div>
+      </div>
+    </div>
+
+    <!-- TAB IGIENE -->
+    <div class="itab-content" id="locanda-igiene">
+      <div class="scroll-area">
+        <div class="sec-head">🏠 Ordine della Locanda</div>
+        <div id="locanda-order-list"></div>
+        <div class="sec-head" style="margin-top:8px">🧼 Igiene Personale</div>
+        <div id="locanda-igiene-list"></div>
+      </div>
+    </div>
+
+    <!-- TAB AVERI -->
+    <div class="itab-content" id="locanda-averi">
+      <div class="scroll-area" id="locanda-averi-list"></div>
     </div>
   </div>
 
@@ -668,39 +795,46 @@ body::before{content:'';position:fixed;inset:0;background:radial-gradient(ellips
   <div class="view" id="view-stregone">
     <div class="view-header">
       <div>
-        <div class="view-sub">Evocazioni</div>
+        <div class="view-sub" id="stregone-sub">Evocazioni & Emporio</div>
         <div class="view-title">Lo Stregone</div>
       </div>
-      <div class="pill-badge badge-purple" id="evo-count">Evo: 0/3</div>
+      <div class="pill-badge badge-purple" id="evo-count" style="display:none">Evo: 0/3</div>
     </div>
-    <div class="scroll-area" id="evocazioni-list"></div>
+    <div class="inner-tabs">
+      <div class="inner-tab active" onclick="switchITab('stregone','evocazioni')">🔮 Evocazioni</div>
+      <div class="inner-tab" onclick="switchITab('stregone','emporio-tab')">🏪 Emporio</div>
+    </div>
+    <div class="itab-content active" id="stregone-evocazioni">
+      <div class="scroll-area" id="evocazioni-list"></div>
+    </div>
+    <div class="itab-content" id="stregone-emporio-tab">
+      <div id="emporio-pubblico" class="scroll-area"></div>
+    </div>
   </div>
 
   <!-- ══════  5. AVATAR  ══════ -->
-  <div class="view" id="view-avatar">
+  <!-- Avatar view (overlay, accessible from Diario) -->
+  <div class="view" id="view-avatar" style="display:none"></div>
+
+  <!-- Diario come view principale -->
+  <div class="view" id="view-diario">
     <div class="view-header">
       <div>
-        <div class="view-sub">Il tuo Eroe</div>
-        <div class="view-title">Avatar</div>
+        <div class="view-sub">Il tuo percorso</div>
+        <div class="view-title">Diario</div>
       </div>
-      <button onclick="openDiario()" style="background:rgba(201,168,76,0.08);border:1px solid var(--gold-dim);border-radius:2px;padding:6px 12px;font-family:'Cinzel',serif;font-size:8px;letter-spacing:1px;color:var(--gold);cursor:pointer;text-transform:uppercase">
-        📖 Diario
+      <button onclick="openAvatarOverlay()" style="background:rgba(201,168,76,0.08);border:1px solid var(--gold-dim);border-radius:2px;padding:6px 12px;font-family:'Cinzel',serif;font-size:8px;letter-spacing:1px;color:var(--gold);cursor:pointer;text-transform:uppercase">
+        🧝 Avatar
       </button>
     </div>
-    <div class="scroll-area">
-      <!-- Pillars -->
-      <div class="sec-head">Pilastri</div>
-      <div id="pillars-list"></div>
-      <!-- Sigilli & Poteri -->
-      <div class="sec-head" style="margin-top:4px">Poteri Celesti</div>
-      <div id="poteri-list"><div class="dev-note">Nessun potere attivo. Sconfiggi un boss per ottenerli.</div></div>
-      <div class="sec-head" style="margin-top:4px">Sigilli Maledetti</div>
-      <div id="sigilli-list"><div class="dev-note">Nessun sigillo attivo.</div></div>
-      <div class="sec-head" style="margin-top:4px">Cambiamenti di Stato</div>
-      <div id="stati-list"></div>
-      <div class="sec-head" style="margin-top:4px">Achievements</div>
-      <div id="achievements-list"><div class="dev-note">Nessun achievement ancora. Combatti!</div></div>
+    <!-- Tab interni Diario -->
+    <div class="inner-tabs" id="diario-inner-tabs">
+      <div class="inner-tab active" id="dtab-consapevolezza" onclick="switchDiarioTab('consapevolezza')" style="font-size:7px">🪬 Consapevolezza</div>
+      <div class="inner-tab" id="dtab-saggezza"         onclick="switchDiarioTab('saggezza')"         style="font-size:7px">💬 Saggezza</div>
+      <div class="inner-tab" id="dtab-storia"           onclick="switchDiarioTab('storia')"           style="font-size:7px">📜 Storia</div>
+      <div class="inner-tab" id="dtab-titoli"           onclick="switchDiarioTab('titoli')"           style="font-size:7px">🏅 Titoli</div>
     </div>
+    <div id="diario-content" class="scroll-area" style="padding-bottom:24px"></div>
   </div>
 
   <!-- ══════  6. EMPORIO  ══════ -->
@@ -719,12 +853,10 @@ body::before{content:'';position:fixed;inset:0;background:radial-gradient(ellips
 
 <!-- ██████  NAV BAR  ██████ -->
 <div class="nav-bar">
-  <div class="nav-btn active" onclick="switchView('oggi',this)"><span class="nav-icon">⚔️</span>Avventura</div>
-  <div class="nav-btn" onclick="switchView('settimana',this)"><span class="nav-icon">🗺️</span>Mappa</div>
+  <div class="nav-btn active" onclick="switchView('oggi',this)"><span class="nav-icon">⚔️</span>Dungeon</div>
   <div class="nav-btn" onclick="switchView('locanda',this)"><span class="nav-icon">🍺</span>Locanda</div>
   <div class="nav-btn" onclick="switchView('stregone',this)"><span class="nav-icon">🧙</span>Stregone</div>
-  <div class="nav-btn" onclick="switchView('avatar',this)"><span class="nav-icon">🧝</span>Avatar</div>
-  <div class="nav-btn" onclick="switchView('emporio',this)"><span class="nav-icon">🏪</span>Emporio</div>
+  <div class="nav-btn" onclick="switchView('diario',this)"><span class="nav-icon">📖</span>Diario</div>
 </div>
 
 <!-- ██████  DEV TRIGGER  ██████ -->
@@ -732,6 +864,42 @@ body::before{content:'';position:fixed;inset:0;background:radial-gradient(ellips
 
 <!-- ██████  TOAST  ██████ -->
 <div id="toast"></div>
+
+<!-- GSB — Sheet NRG Drain -->
+<div class="sheet-ov" id="sheet-gsb-nrg" onclick="closeSheet('gsb-nrg',event)">
+  <div class="sheet-pan">
+    <div class="sh-handle"></div>
+    <div class="sh-title">⚡ Energia</div>
+    <div class="sh-sub">Drain attivo e fattori che lo modificano</div>
+    <div id="gsb-nrg-drain-detail" style="margin:12px 0 6px"></div>
+    <div class="sh-sec">Fattori attivi</div>
+    <div id="gsb-nrg-factors"></div>
+    <button class="btn-main" style="margin-top:14px" onclick="closeSheet('gsb-nrg')">Chiudi</button>
+  </div>
+</div>
+
+<!-- GSB — Sheet Stati -->
+<div class="sheet-ov" id="sheet-gsb-stati" onclick="closeSheet('gsb-stati',event)">
+  <div class="sheet-pan">
+    <div class="sh-handle"></div>
+    <div class="sh-title">🌀 Cambiamenti di Stato</div>
+    <div class="sh-sub">Abitudini attive e loro effetti. Dichiara se oggi non le hai fatte.</div>
+    <div id="gsb-stati-body" style="margin-top:8px"></div>
+    <button class="btn-main" style="margin-top:14px" onclick="closeSheet('gsb-stati')">Chiudi</button>
+  </div>
+</div>
+
+<!-- GSB — Sheet Riposo (fase notte) -->
+<div class="sheet-ov" id="sheet-gsb-riposo" onclick="closeSheet('gsb-riposo',event)">
+  <div class="sheet-pan">
+    <div class="sh-handle"></div>
+    <div class="sh-title">🌙 Riposo</div>
+    <div class="sh-sub" id="gsb-riposo-sub">Buona notte — metti il gioco in pausa</div>
+    <div id="gsb-riposo-body" style="margin:16px 0"></div>
+    <button class="btn-main btn-red" style="width:100%;padding:12px;font-size:10px;letter-spacing:2px" onclick="iniziaRiposo()">🌙 Vai a Dormire</button>
+    <button class="btn-ghost" style="width:100%;margin-top:8px" onclick="closeSheet('gsb-riposo')">Annulla</button>
+  </div>
+</div>
 
 <!-- ══════════════════════════════════════════════════
      BOTTOM SHEETS
@@ -1092,14 +1260,14 @@ body::before{content:'';position:fixed;inset:0;background:radial-gradient(ellips
 
   <!-- ── FORMULE MAGICHE ── -->
   <div class="dev-section">
-    <div class="dev-section-title">✨ Formule Magiche — Condizioni</div>
-    <div class="dev-note">Ogni formula si attiva automaticamente se la condizione è vera. Lascia vuoto per disattivare.</div>
+    <div class="dev-section-title">✨ Formule Magiche — Condizioni di Attivazione</div>
+    <div class="dev-note">Ogni formula viene suggerita se la condizione è vera. Basate sullo stato del giocatore.</div>
     <div class="dev-grid">
-      <div class="dev-field"><span class="dev-field-lbl">🚿 Doccia: sonno ≤ X ore</span><input class="dev-inp" id="dev-fm-doccia-sonno" type="number" min="0" max="12"></div>
-      <div class="dev-field"><span class="dev-field-lbl">🤸 Stretching: cat aperta</span><select class="form-sel" id="dev-fm-stretch-cat" style="font-size:9px;padding:6px"><option value="corpo">corpo</option><option value="mente">mente</option><option value="anima">anima</option><option value="portafoglio">portafoglio</option></select></div>
-      <div class="dev-field"><span class="dev-field-lbl">📖 Lettura: cat oggi</span><select class="form-sel" id="dev-fm-lettura-cat" style="font-size:9px;padding:6px"><option value="mente">mente</option><option value="corpo">corpo</option><option value="anima">anima</option><option value="portafoglio">portafoglio</option></select></div>
-      <div class="dev-field"><span class="dev-field-lbl">🚲 Bici: cat oggi</span><select class="form-sel" id="dev-fm-bici-cat" style="font-size:9px;padding:6px"><option value="portafoglio">portafoglio</option><option value="corpo">corpo</option><option value="mente">mente</option></select></div>
-      <div class="dev-field"><span class="dev-field-lbl">👨‍🍳 Cucinare: verdure &lt; X</span><input class="dev-inp" id="dev-fm-cucinare-verd" type="number" min="0" max="5"></div>
+      <div class="dev-field"><span class="dev-field-lbl">🚿 Doccia fredda: ore sonno ≤</span><input class="dev-inp" id="dev-fm-doccia-sonno" type="number" min="0" max="12" step="0.5"></div>
+      <div class="dev-field"><span class="dev-field-lbl">🤸 Stretching: NRG < X%</span><input class="dev-inp" id="dev-fm-stretch-nrg" type="number" min="0" max="100"></div>
+      <div class="dev-field"><span class="dev-field-lbl">📖 Lettura: HP < X%</span><input class="dev-inp" id="dev-fm-lettura-hp" type="number" min="0" max="100"></div>
+      <div class="dev-field"><span class="dev-field-lbl">🚲 Bici: cat varco oggi</span><select class="form-sel" id="dev-fm-bici-cat" style="font-size:9px;padding:6px"><option value="portafoglio">portafoglio</option><option value="corpo">corpo</option><option value="mente">mente</option><option value="anima">anima</option></select></div>
+      <div class="dev-field"><span class="dev-field-lbl">👨‍🍳 Cucinare: verdure < X</span><input class="dev-inp" id="dev-fm-cucinare-verd" type="number" min="0" max="10"></div>
     </div>
   </div>
 
@@ -1252,13 +1420,14 @@ const DEFAULT_CONFIG = {
   avanguardiaDanno: 15,   // HP persi per avanguardia scaduta
   // Stregone
   evoMax: 3, formulaMax: 3,
-  // Formule magiche — condizioni configurabili
+  emporioPassword: '1234',  // password pannello privato
+  // Formule magiche — condizioni basate sullo stato del giocatore (configurabili)
   formuleCondizioni: {
-    'doccia_fredda': { sonnoMax: 6 },          // richiesta se ore sonno <= 6
-    'stretching':    { catAperto: 'corpo' },    // richiesta se varco corpo aperto
-    'lettura':       { catOggi: 'mente' },      // richiesta se varco mente oggi
-    'bici':          { catOggi: 'portafoglio' },// richiesta se varco portafoglio oggi
-    'cucinare':      { verdureMin: 1 },         // richiesta se verdure < 1 oggi
+    'doccia_fredda': { sonnoMax: 6 },        // richiesta se ore sonno <=
+    'stretching':    { nrgPctMax: 60 },       // richiesta se NRG < X% del massimo
+    'lettura':       { hpPctMax: 70 },        // richiesta se HP < X% del massimo
+    'bici':          { catOggi: 'portafoglio' }, // richiesta se varco portafoglio oggi
+    'cucinare':      { verdureMax: 1 },       // richiesta se verdure < X oggi
   },
   // Sigilli
   habitCurseDays: 7, habitHealDays: 21,
@@ -1313,8 +1482,16 @@ let gameState = JSON.parse(localStorage.getItem('rise_state') || 'null') || {
   },
   // Igiene cooldowns (timestamp ultimo utilizzo)
   igiene: {barba:null, capelli:null, rasatura:null, lavatrice:null},
+  igieneStorico: {barba:[], capelli:[], rasatura:[], lavatrice:[]},
   // Inventario artefici
   inventario: [],
+  // Emporio
+  emporioOggetti: [
+    {id:1,nome:'Cuffie Wireless',prezzo:800,requisiti:[],priorita:0,desc:'Libertà sonora totale',effetti:'Concentrazione e immersione migliorati',acquistato:false,dataAcquisto:null,prezzoAcquisto:null},
+    {id:2,nome:'Corso Online',prezzo:400,requisiti:['Titoli'],priorita:1,desc:'Investimento in conoscenza',effetti:'Nuove competenze sbloccate',acquistato:false,dataAcquisto:null,prezzoAcquisto:null},
+    {id:3,nome:'Weekend Relax',prezzo:1200,requisiti:['Livelli'],priorita:2,desc:'Ricarica completa',effetti:'Recupero HP e NRG massimi per 3 giorni',acquistato:false,dataAcquisto:null,prezzoAcquisto:null},
+    {id:4,nome:'Libro Raro',prezzo:150,requisiti:[],priorita:3,desc:'Sapienza antica',effetti:'XP Mente bonus',acquistato:false,dataAcquisto:null,prezzoAcquisto:null},
+  ],
   // Log monete
   goldLog: [
     {desc:"Varco Meditazione completato", val:+40, time:"ieri"},
@@ -1336,12 +1513,16 @@ let gameState = JSON.parse(localStorage.getItem('rise_state') || 'null') || {
   // Storico giornaliero (max 5 giorni, usato per calcolo NRG base)
   storico: [],            // [{data, oreSonno, acqua, verdura, frutta, proteine, junk}]
   giornoCorrente: null,   // stringa "YYYY-MM-DD" del giorno attuale
+  oraSveglia: '07:00',    // ora di sveglia dichiarata
+  nannaOn: false,         // true = dormendo
   chiusureSettimana: {},  // {varcoId: numero_chiusure_questa_settimana}
   sessionLog: {},          // {varcoId: {goldRec, hpPersi, mostriAff, oggettiTrovati}}
   nrgBaseDiOggi: null,    // calcolata la mattina e fissata per il giorno
   // Evocazioni usate oggi
   evoUsate: 0,
   formuleUsate: 0,
+  formuleCustom: [],           // formule aggiuntive create in Mappa
+  formuleDefaultOverride: {},  // override parametri formule default
   // Acquisti emporio
   emporioAcquistati: [],
 };
@@ -1398,8 +1579,25 @@ function updateHUD(){
 function switchView(id, btn){
   document.querySelectorAll('.view').forEach(v=>v.classList.remove('active'));
   document.querySelectorAll('.nav-btn').forEach(b=>b.classList.remove('active'));
-  document.getElementById('view-'+id).classList.add('active');
-  btn.classList.add('active');
+  const target = document.getElementById('view-'+id);
+  if(target) target.classList.add('active');
+  // Mappa non ha un nav-btn — non evidenziare nulla
+  if(btn && id !== 'settimana') btn.classList.add('active');
+  // Diario: renderizza tab attivo
+  if(id === 'diario') switchDiarioTab(_diarioTab);
+}
+function apriMappa(){
+  document.querySelectorAll('.view').forEach(v=>v.classList.remove('active'));
+  document.querySelectorAll('.nav-btn').forEach(b=>b.classList.remove('active'));
+  const mappaView = document.getElementById('view-settimana');
+  if(mappaView) mappaView.classList.add('active');
+  // Side effects Mappa
+  updateMappaAddBtn && updateMappaAddBtn();
+}
+function tornaAlDungeon(){
+  const oggi = document.querySelector('.nav-btn');
+  switchView('oggi', oggi);
+  oggi && oggi.classList.add('active');
 }
 function switchITab(viewId, tabId){
   const parentView = document.getElementById('view-'+viewId) || (viewId==='stregone'?document.getElementById('view-stregone'):null);
@@ -1416,6 +1614,15 @@ function switchITab(viewId, tabId){
     updateMappaAddBtn();
     if(tabId === 'longterm') renderCalendar();
   }
+  // Stregone side effects
+  if(viewId === 'stregone'){
+    if(tabId === 'emporio-tab') renderEmporio();
+  }
+  // Locanda side effects
+  if(viewId === 'locanda'){
+    if(tabId === 'averi') renderAveri();
+    else renderLocanda();
+  }
   // Avventura side effects
   if(viewId === 'oggi'){
     if(tabId === 'dungeon')       renderDungeon();
@@ -1427,14 +1634,8 @@ function switchITab(viewId, tabId){
 /* ════════════════════════════════════════════════
    SHEETS
 ════════════════════════════════════════════════ */
-function openSheet(id){
-  document.getElementById('sheet-'+id)?.classList.add('active');
-}
-function closeSheet(id, event){
-  if(event && event.target !== document.getElementById('sheet-'+id)) return;
-  document.getElementById('sheet-'+id)?.classList.remove('active');
-}
-function openAddVarco(){openSheet('add-varco');}
+
+
 
 /* ════════════════════════════════════════════════
    VARCHI RENDER
@@ -2418,6 +2619,13 @@ function renderDungeon(){
   const list = document.getElementById('varchi-list');
   if(!list) return;
 
+  // Formule suggerite — calcolate qui, rese nell'html del list (dopo Varchi)
+  const formuleOggi = FORMULE_DEF.filter(f =>
+    formulaRichiesta(f) && !(gameState.sessionLog||{})[f.id]?.fatto
+  );
+  const formuleBanner = document.getElementById('formule-dungeon-banner');
+  if(formuleBanner) formuleBanner.style.display = 'none';
+
   // Avanguardie
   const avanguardie = (gameState.eventi||[])
     .filter(e => e.tipo==='avanguardia' && !e.completato)
@@ -2456,36 +2664,67 @@ function renderDungeon(){
   const nemiciOggi = [...bossOggiDungeon, ...sentOggiDungeon];
   const hasNemiciOggi = nemiciOggi.length > 0;
 
+  // Stato aperto/chiuso gruppi (persiste nel session)
+  if(!window._dungeonGroups) window._dungeonGroups = { imminenti:true, varchi:true, formule:true, avanzamento:true };
+  const G = window._dungeonGroups;
+
+  // Riga collassabile — stile uniforme per tutti i gruppi
+  function collapsibleGroup(key, label, countLabel, contentHtml){
+    const open = G[key];
+    return `
+      <div style="border-bottom:1px solid var(--border)">
+        <div onclick="window._dungeonGroups['${key}']=!window._dungeonGroups['${key}'];renderDungeon()"
+          style="display:flex;align-items:center;gap:6px;padding:7px 14px;cursor:pointer;user-select:none">
+          <span style="font-family:'Cinzel',serif;font-size:8px;letter-spacing:2px;color:var(--text-mid);text-transform:uppercase;flex:1">${label}</span>
+          <span style="font-family:'Cinzel',serif;font-size:9px;color:var(--text-dim);margin-right:4px">${countLabel}</span>
+          <span style="font-size:10px;color:var(--text-dim);display:inline-block;transform:rotate(${open?'180':'0'}deg)">▾</span>
+        </div>
+        ${open ? `<div style="padding:0 0 6px">${contentHtml}</div>` : ''}
+      </div>`;
+  }
+
   if(hasImminenti || hasNemiciOggi){
-    html += divider('⚠ Imminenti', 'var(--red-bright)', '#3a1a1a');
-    varchiAperti.forEach((v,i) => { html += cardVarco(v, varchiAll.indexOf(v)+1); html += cardFormulaCollegata(v); });
-    avaInGuardia.forEach(a => { html += cardAvanguardia(a); });
-    // Boss del giorno con bottoni azione
-    bossOggiDungeon.forEach(b => { html += cardBoss(b); });
-    // Sentinelle del giorno con bottoni azione
-    sentOggiDungeon.forEach(s => { html += cardSentinellaConAzione(s); });
+    let c = '';
+    varchiAperti.forEach((v,i) => { c += cardVarco(v, varchiAll.indexOf(v)+1); c += cardFormulaCollegata(v); });
+    avaInGuardia.forEach(a => { c += cardAvanguardia(a); });
+    bossOggiDungeon.forEach(b => { c += cardBoss(b); });
+    sentOggiDungeon.forEach(s => { c += cardSentinellaConAzione(s); });
+    html += collapsibleGroup('imminenti', '⚠ Imminenti', imminenti.length + nemiciOggi.length, c);
   }
 
-  // Varchi normali (non aperti, non done)
-  if(varchiOggi.length){
-    if(hasImminenti) html += divider('Dungeon', 'var(--text-dim)', 'var(--border)');
-    varchiOggi.forEach((v,i) => {
-      html += cardVarco(v, varchiAll.indexOf(v)+1);
-      html += cardFormulaCollegata(v);
-    });
-  }
-
-  // Varchi completati
+  // Varchi — attivi + completati nella stessa lista (completati in fondo, oscurati)
   const varchiDone = varchiAll.filter(v => v.done);
-  if(varchiDone.length){
-    html += divider('Completati', 'var(--green-dim)', '#1a2a1a');
-    varchiDone.forEach(v => { html += cardVarco(v, varchiAll.indexOf(v)+1); });
+  const varchiGruppo = [...varchiOggi, ...varchiDone];
+  if(varchiGruppo.length){
+    let c = '';
+    varchiOggi.forEach(v => { c += cardVarco(v, varchiAll.indexOf(v)+1); });
+    varchiDone.forEach(v => { c += `<div style="opacity:0.35;filter:saturate(0.3);pointer-events:none">${cardVarco(v, varchiAll.indexOf(v)+1)}</div>`; });
+    const countLabel = varchiOggi.length + (varchiDone.length ? ` · ${varchiDone.length} ✓` : '');
+    html += collapsibleGroup('varchi', 'Varchi', countLabel, c);
   }
 
-  // Avanguardie in avanzamento
+  // Formule — gruppo inline dopo Varchi
+  if(formuleOggi.length){
+    let c = formuleOggi.map(f=>`
+      <div style="display:flex;align-items:center;gap:8px;background:var(--surface);border-left:2px solid rgba(74,154,186,0.4);padding:7px 14px;cursor:pointer"
+        onclick="openFormulaDetail('${f.id}')">
+        <span style="font-size:15px">${f.icon}</span>
+        <span style="font-family:'Cinzel',serif;font-size:9px;color:var(--text);flex:1">${f.nome}</span>
+        <span style="font-size:9px;color:var(--text-dim)">· ${formulaPerche(f)}</span>
+        <button onclick="event.stopPropagation();usaFormulaMagica('${f.id}')"
+          style="padding:3px 8px;background:rgba(74,154,186,0.08);border:1px solid rgba(74,154,186,0.35);border-radius:1px;
+          font-family:'Cinzel',serif;font-size:7px;color:var(--zen);cursor:pointer;text-transform:uppercase;margin-left:4px;flex-shrink:0">
+          ✓ Usa
+        </button>
+      </div>`).join('');
+    html += collapsibleGroup('formule', 'Formule', formuleOggi.length, c);
+  }
+
+  // Avanguardie
   if(avaInAvanzata.length){
-    html += divider('⏳ In Avanzamento', 'var(--gold)', 'var(--gold-dim)');
-    avaInAvanzata.forEach(a => { html += cardAvanguardia(a); });
+    let c = '';
+    avaInAvanzata.forEach(a => { c += cardAvanguardia(a); });
+    html += collapsibleGroup('avanzamento', 'Avanguardie', avaInAvanzata.length, c);
   }
 
   if(!varchiAll.length && !avanguardie.length)
@@ -2495,6 +2734,9 @@ function renderDungeon(){
 
   // Avvia tick timer per aggiornare countdown ogni secondo
   startVarcoTimerTick();
+
+  // Render Pratiche (formule magiche) nella stessa tab
+  renderFormuleMappa();
 }
 
 function divider(label, col, borderCol){
@@ -3024,32 +3266,6 @@ function risolviSentinella(id, esito){
   saveAll(); updateHUD(); renderNemici(); renderDungeon();
 }
 
-/* ── Card formula collegata — appare sotto il varco ── */
-function cardFormulaCollegata(v){
-  // Trova formule richieste con varcoCollegato della stessa categoria
-  const formuleRich = FORMULE_DEF.filter(f =>
-    f.varcoCollegato === v.cat && formulaRichiesta(f) && !(gameState.sessionLog||{})[f.id]?.fatto
-  );
-  if(!formuleRich.length) return '';
-
-  return formuleRich.map(f => `
-  <div style="margin-top:-4px;margin-bottom:6px;margin-left:24px;position:relative">
-    <div style="position:absolute;left:-12px;top:0;bottom:0;width:1px;background:rgba(74,154,186,0.4)"></div>
-    <div style="position:absolute;left:-16px;top:50%;transform:translateY(-50%);width:8px;height:8px;border-radius:50%;background:var(--zen);opacity:0.7"></div>
-    <div onclick="switchITab('oggi','formule');setTimeout(()=>document.getElementById('oggi-formule')?.scrollIntoView({behavior:'smooth'}),100)"
-      style="background:rgba(74,154,186,0.06);border:1px solid rgba(74,154,186,0.3);border-radius:2px;padding:7px 12px;cursor:pointer;
-      display:flex;align-items:center;gap:8px;transition:border-color 0.15s"
-      onmouseover="this.style.borderColor='var(--zen)'" onmouseout="this.style.borderColor='rgba(74,154,186,0.3)'">
-      <span style="font-size:14px">${f.icon}</span>
-      <div style="flex:1">
-        <span style="font-family:'Cinzel',serif;font-size:9px;color:var(--zen)">✳️ Formula richiesta: </span>
-        <span style="font-family:'Cinzel',serif;font-size:9px;color:var(--text)">${f.nome}</span>
-      </div>
-      <span style="font-family:'Cinzel',serif;font-size:7px;color:var(--text-dim);letter-spacing:1px">→ FORMULE</span>
-    </div>
-  </div>`).join('');
-}
-
 /* ════════════════════════════════════════════════
    FORMULE MAGICHE — Avventura
 ════════════════════════════════════════════════ */
@@ -3103,24 +3319,25 @@ const FORMULE_DEF = [
   },
 ];
 
-/* Valuta se una formula è richiesta oggi basandosi sulle condizioni */
+/* Valuta se una formula è suggerita in base allo stato del giocatore */
 function formulaRichiesta(f){
   const cond = (cfg.formuleCondizioni||{})[f.id] || {};
-  const l = gameState.locanda;
-  const tot = getTotaliGiornata();
+  const l    = gameState.locanda;
+  const tot  = getTotaliGiornata();
+  const nrg  = cfg.nrg  || 0;
+  const hp   = cfg.hp   || 0;
+  const nrgMax = cfg.nrgMax || 100;
+  const hpMax  = cfg.hpMax  || 100;
 
-  // Condizione sonno
+  // Sonno scarso
   if(cond.sonnoMax !== undefined && (l.oreSonno||0) <= cond.sonnoMax) return true;
-  // Condizione verdure
-  if(cond.verdureMin !== undefined && tot.verdura < cond.verdureMin) return true;
-  // Condizione categoria aperta (varco aperto ora)
-  if(cond.catAperto){
-    const aperto = gameState.varchi.some(v =>
-      v.cat === cond.catAperto && !v.done && varcoTimerData(v)?.open
-    );
-    if(aperto) return true;
-  }
-  // Condizione categoria presente oggi
+  // NRG bassa (percentuale)
+  if(cond.nrgPctMax !== undefined && (nrg / nrgMax * 100) < cond.nrgPctMax) return true;
+  // HP bassa (percentuale)
+  if(cond.hpPctMax !== undefined && (hp / hpMax * 100) < cond.hpPctMax) return true;
+  // Verdure sotto soglia
+  if(cond.verdureMax !== undefined && tot.verdura < cond.verdureMax) return true;
+  // Varco di categoria presente oggi
   if(cond.catOggi){
     const presente = gameState.varchi.some(v =>
       v.cat === cond.catOggi && varcoVisibileOggi(v) && !v.done
@@ -3128,6 +3345,28 @@ function formulaRichiesta(f){
     if(presente) return true;
   }
   return false;
+}
+
+/* Descrizione leggibile della condizione che ha attivato la formula */
+function formulaPerche(f){
+  const cond = (cfg.formuleCondizioni||{})[f.id] || {};
+  const l    = gameState.locanda;
+  const tot  = getTotaliGiornata();
+  const nrg  = cfg.nrg||0, hp=cfg.hp||0;
+  const nrgPct = Math.round(nrg/(cfg.nrgMax||100)*100);
+  const hpPct  = Math.round(hp/(cfg.hpMax||100)*100);
+
+  if(cond.sonnoMax !== undefined && (l.oreSonno||0) <= cond.sonnoMax)
+    return `Sonno scarso: ${l.oreSonno||0}h (soglia ${cond.sonnoMax}h)`;
+  if(cond.nrgPctMax !== undefined && nrgPct < cond.nrgPctMax)
+    return `NRG bassa: ${nrgPct}% (soglia ${cond.nrgPctMax}%)`;
+  if(cond.hpPctMax !== undefined && hpPct < cond.hpPctMax)
+    return `HP bassa: ${hpPct}% (soglia ${cond.hpPctMax}%)`;
+  if(cond.verdureMax !== undefined && tot.verdura < cond.verdureMax)
+    return `Verdure insufficienti: ${tot.verdura} (soglia ${cond.verdureMax})`;
+  if(cond.catOggi)
+    return `Hai varchi ${cond.catOggi} oggi`;
+  return '';
 }
 
 /* Varchi collegati a questa formula (stessa categoria + visibili oggi) */
@@ -3145,7 +3384,8 @@ function renderFormuleAvv(){
 
   const usate = gameState.formuleUsate || 0;
   const max   = cfg.formulaMax || 3;
-  const richieste = FORMULE_DEF.filter(formulaRichiesta);
+  const tutteAvv   = getAllFormule();
+  const richieste  = tutteAvv.filter(formulaRichiesta);
 
   // Update badge
   const badge = document.getElementById('badge-formule');
@@ -3184,30 +3424,111 @@ function cardFormula(f, richiesta, esaurita){
     <span style="font-family:'Cinzel',serif;font-size:9px;color:${v>0?'var(--green)':'var(--red-bright)'}">${v>0?'+':''}${v} ${k==='nrg'?'NRG':'HP'}</span>
   `).join('');
 
+  const perche = richiesta ? formulaPerche(f) : '';
   return `
-  <div style="background:${bg};border:1px solid ${borderCol};border-radius:2px;margin-bottom:6px;overflow:hidden;${richiesta&&!isDone?'animation:pulse-anf 2.5s ease-in-out infinite':''}">
+  <div style="background:${bg};border:1px solid ${borderCol};border-radius:2px;margin-bottom:6px;overflow:hidden;${richiesta&&!isDone?'animation:pulse-anf 2.5s ease-in-out infinite':''}"
+    onclick="openFormulaDetail('${f.id}')" style="cursor:pointer">
     <div style="padding:11px 14px;display:flex;align-items:center;gap:10px">
       <span style="font-size:22px;flex-shrink:0">${f.icon}</span>
       <div style="flex:1">
-        <div style="display:flex;align-items:center;gap:6px">
+        <div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap">
           <div style="font-family:'Cinzel',serif;font-size:12px;color:${isDone?'var(--green)':richiesta?'var(--zen)':'var(--text)'}">${f.nome}</div>
           ${richiesta&&!isDone?`<span style="font-size:10px">✳️</span>`:''}
-          ${isDone?`<span style="font-size:10px">✓</span>`:''}
+          ${isDone?`<span style="font-size:10px;color:var(--green)">✓</span>`:''}
         </div>
-        <div style="font-size:9px;color:var(--text-dim);margin-top:2px">${f.dur} · ${f.desc}</div>
-        <div style="display:flex;gap:4px;margin-top:4px">${effHtml}</div>
+        ${richiesta&&perche?`<div style="font-size:9px;color:var(--zen);margin-top:2px">${perche}</div>`:''}
+        <div style="font-size:9px;color:var(--text-dim);margin-top:2px">${f.dur} · ${effHtml}</div>
       </div>
-      <div style="flex-shrink:0">
-        ${!isDone?`<button onclick="usaFormulaMagica('${f.id}')"
-          style="padding:6px 12px;background:transparent;border:1px solid ${esaurita?'var(--border)':richiesta?'var(--zen)':'var(--border-light)'};border-radius:1px;
+      <div style="flex-shrink:0;display:flex;flex-direction:column;gap:4px;align-items:flex-end">
+        ${!isDone?`
+        <button onclick="event.stopPropagation();usaFormulaMagica('${f.id}')"
+          style="padding:5px 10px;background:${esaurita?'transparent':richiesta?'rgba(74,154,186,0.1)':'transparent'};
+          border:1px solid ${esaurita?'var(--border)':richiesta?'rgba(74,154,186,0.5)':'var(--border-light)'};border-radius:1px;
           font-family:'Cinzel',serif;font-size:8px;letter-spacing:1px;color:${esaurita?'var(--text-dim)':richiesta?'var(--zen)':'var(--text-dim)'};
-          cursor:${esaurita?'not-allowed':'pointer'};text-transform:uppercase"
+          cursor:${esaurita?'not-allowed':'pointer'};text-transform:uppercase;white-space:nowrap"
           ${esaurita?'disabled':''}>
           ${esaurita?'Max':'✨ Usa'}
         </button>`:`<span style="font-family:'Cinzel',serif;font-size:9px;color:var(--green)">Usata</span>`}
+        <span style="font-size:8px;color:var(--text-dim)">→ dettagli</span>
       </div>
     </div>
   </div>`;
+}
+
+/* Apri scheda formula con dettagli + bottone "Usa" */
+function openFormulaDetail(id){
+  const f = FORMULE_DEF.find(x=>x.id===id);
+  if(!f) return;
+  const isDone   = !!(gameState.sessionLog||{})[id]?.fatto;
+  const richiesta = formulaRichiesta(f);
+  const perche   = richiesta ? formulaPerche(f) : '';
+  const effHtml  = Object.entries(f.effetti).map(([k,v])=>
+    `<span style="font-family:'Cinzel',serif;font-size:13px;color:${v>0?'var(--green)':'var(--red-bright)'}">${v>0?'+':''}${v} ${k==='nrg'?'NRG':'HP'}</span>`
+  ).join(' · ');
+  const usate   = gameState.formuleUsate||0;
+  const maxF    = cfg.formulaMax||3;
+  const esaurita = usate >= maxF;
+
+  // Mini overlay inline
+  const existing = document.getElementById('formula-detail-panel');
+  if(existing) existing.remove();
+
+  const panel = document.createElement('div');
+  panel.id = 'formula-detail-panel';
+  panel.style.cssText='position:fixed;inset:0;z-index:220;display:flex;align-items:flex-end;justify-content:center';
+  panel.innerHTML=`
+    <div onclick="this.parentElement.remove()" style="position:absolute;inset:0;background:rgba(0,0,0,0.7)"></div>
+    <div style="position:relative;z-index:1;width:100%;max-width:480px;background:var(--bg);
+      border-top:1px solid rgba(74,154,186,0.4);border-left:1px solid var(--border);border-right:1px solid var(--border);
+      border-radius:2px 2px 0 0;padding:18px 18px 40px">
+      <div style="text-align:center;margin-bottom:14px">
+        <div style="width:32px;height:3px;background:var(--border);border-radius:2px;margin:0 auto"></div>
+      </div>
+      <!-- Header -->
+      <div style="display:flex;align-items:center;gap:12px;margin-bottom:14px">
+        <span style="font-size:32px">${f.icon}</span>
+        <div style="flex:1">
+          <div style="font-family:'Cinzel',serif;font-size:16px;color:${richiesta?'var(--zen)':'var(--text)'}">${f.nome}</div>
+          <div style="font-size:10px;color:var(--text-dim);margin-top:2px">⏱ ${f.dur}</div>
+        </div>
+        <button onclick="document.getElementById('formula-detail-panel').remove()"
+          style="background:none;border:none;color:var(--text-dim);font-size:16px;cursor:pointer">✕</button>
+      </div>
+      <!-- Perché suggerita -->
+      ${richiesta&&perche?`
+      <div style="background:rgba(74,154,186,0.08);border:1px solid rgba(74,154,186,0.3);border-radius:2px;padding:8px 12px;margin-bottom:10px;display:flex;align-items:center;gap:8px">
+        <span style="font-size:14px">✳️</span>
+        <div style="font-size:10px;color:var(--zen)">${perche}</div>
+      </div>`:''}
+      <!-- Descrizione -->
+      <div style="font-size:11px;color:var(--text-dim);font-style:italic;margin-bottom:12px">${f.desc}</div>
+      <!-- Effetti -->
+      <div style="background:rgba(74,154,90,0.06);border:1px solid var(--green-dim);border-radius:2px;padding:10px 14px;margin-bottom:14px">
+        <div style="font-family:'Cinzel',serif;font-size:8px;letter-spacing:1px;color:var(--green);text-transform:uppercase;margin-bottom:6px">✨ Effetti</div>
+        <div>${effHtml}</div>
+        ${f.drainMod?`<div style="font-size:9px;color:var(--text-dim);margin-top:4px">Riduce il drain NRG di ${Math.abs(f.drainMod*100).toFixed(1)}% per oggi</div>`:''}
+      </div>
+      <!-- Azione -->
+      ${isDone
+        ? `<div style="text-align:center;font-family:'Cinzel',serif;font-size:12px;color:var(--green)">✓ Formula già usata oggi</div>`
+        : `<div style="display:flex;gap:8px">
+            <button onclick="usaFormulaMagica('${f.id}');document.getElementById('formula-detail-panel').remove()"
+              ${esaurita?'disabled':''}
+              style="flex:1;padding:12px;background:${esaurita?'transparent':'rgba(74,154,186,0.08)'};
+              border:1px solid ${esaurita?'var(--border)':'rgba(74,154,186,0.4)'};border-radius:1px;
+              font-family:'Cinzel',serif;font-size:10px;letter-spacing:1px;
+              color:${esaurita?'var(--text-dim)':'var(--zen)'};cursor:${esaurita?'not-allowed':'pointer'};text-transform:uppercase">
+              ${esaurita?`Max (${usate}/${maxF})`:'✨ Usa Formula'}
+            </button>
+            <button onclick="document.getElementById('formula-detail-panel').remove()"
+              style="padding:12px 16px;background:transparent;border:1px solid var(--border);border-radius:1px;
+              font-family:'Cinzel',serif;font-size:10px;color:var(--text-dim);cursor:pointer">
+              Chiudi
+            </button>
+          </div>`
+      }
+    </div>`;
+  document.body.appendChild(panel);
 }
 
 /* Usa una formula magica */
@@ -3232,6 +3553,452 @@ function renderAvventura(){
   renderDungeon();
   renderNemici();
   renderFormuleAvv();
+}
+
+/* ════════════════════════════════════════════════
+   MAPPA — FORMULE MAGICHE (gestione)
+════════════════════════════════════════════════ */
+
+const EFFETTI_FORMULA = [
+  {id:'risveglio',     icon:'🌅', label:'Risveglio'},
+  {id:'energia',       icon:'⚡', label:'Energia'},
+  {id:'rilassamento',  icon:'🌿', label:'Rilassamento'},
+  {id:'concentrazione',icon:'🎯', label:'Concentrazione'},
+  {id:'risparmio',     icon:'💰', label:'Risparmio'},
+  {id:'nutrimento',    icon:'🥗', label:'Nutrimento'},
+  {id:'movimento',     icon:'🚴', label:'Movimento'},
+  {id:'chiarezza',     icon:'💡', label:'Chiarezza'},
+  {id:'forza',         icon:'💪', label:'Forza'},
+  {id:'equilibrio',    icon:'⚖️', label:'Equilibrio'},
+];
+
+let _formulaMappaForm = null; // null = lista, id = editing
+
+function renderFormuleMappa(){
+  const el = document.getElementById('formule-mappa-list');
+  if(!el) return;
+
+  // Ottieni formule: default (FORMULE_DEF) + custom (gameState.formuleCustom)
+  const custom = gameState.formuleCustom || [];
+  // Aggiungi campi mappa alle formule default se non presenti
+  const tutteFormule = FORMULE_DEF.map(f => ({
+    ...f,
+    frequenza: f.frequenza ?? 3,
+    effettiMappa: f.effettiMappa ?? [],
+    dungeonsCollegati: f.dungeonsCollegati ?? [],
+    isDefault: true,
+  })).concat(custom.map(f => ({...f, isDefault:false})));
+
+  let html = `<div style="font-size:10px;color:var(--text-dim);font-style:italic;margin-bottom:10px">
+    Gestisci le formule magiche. Le prime 5 sono predefinite. Le frequenze guidano il trigger automatico.
+  </div>`;
+
+  if(_formulaMappaForm !== null){
+    const editing = _formulaMappaForm === 'new'
+      ? null
+      : tutteFormule.find(f=>f.id===_formulaMappaForm);
+    html += renderFormulaMappaForm(editing, tutteFormule);
+  } else {
+    // Lista
+    tutteFormule.forEach(f => {
+      const freq = f.frequenza ?? 3;
+      const effIcons = (f.effettiMappa||[]).map(e => {
+        const em = EFFETTI_FORMULA.find(x=>x.id===e);
+        return em ? em.icon : '·';
+      }).join('');
+      const dungeons = (f.dungeonsCollegati||[]).map(id => {
+        const v = gameState.varchi.find(x=>x.id===id);
+        return v ? v.nome : '';
+      }).filter(Boolean).join(', ');
+
+      html += `
+      <div style="background:var(--surface);border:1px solid var(--border);border-radius:2px;
+        margin-bottom:6px;overflow:hidden;cursor:pointer;transition:border-color 0.15s"
+        onclick="_formulaMappaForm='${f.id}';renderFormuleMappa()"
+        onmouseover="this.style.borderColor='var(--border-light)'"
+        onmouseout="this.style.borderColor='var(--border)'">
+        <div style="display:flex;align-items:center;gap:10px;padding:10px 14px">
+          <span style="font-size:22px;flex-shrink:0">${f.icon}</span>
+          <div style="flex:1;min-width:0">
+            <div style="font-family:'Cinzel',serif;font-size:12px;color:var(--text)">${f.nome}</div>
+            <div style="font-size:9px;color:var(--text-dim);margin-top:2px">
+              ${f.dur} · ${freq}×/sett
+              ${effIcons ? `· ${effIcons}` : ''}
+              ${dungeons ? `· 🔗 ${dungeons}` : ''}
+            </div>
+          </div>
+          <div style="font-family:'Cinzel',serif;font-size:8px;color:var(--text-dim)">→</div>
+        </div>
+        <!-- Barra frequenza -->
+        <div style="height:2px;background:var(--surface3)">
+          <div style="height:100%;width:${(freq/7*100).toFixed(0)}%;background:var(--zen);transition:width 0.3s"></div>
+        </div>
+      </div>`;
+    });
+
+
+  }
+
+  el.innerHTML = html;
+}
+
+function renderFormulaMappaForm(f, tutteLeFomule){
+  const isNew = !f;
+  const formState = window._fmState || {
+    id:       f?.id    || 'formula_'+Date.now(),
+    icon:     f?.icon  || '✨',
+    nome:     f?.nome  || '',
+    dur:      f?.dur   || '15 min',
+    frequenza:f?.frequenza ?? 3,
+    effettiMappa:     f?.effettiMappa     || [],
+    dungeonsCollegati:f?.dungeonsCollegati|| [],
+    isDefault:f?.isDefault ?? false,
+  };
+  window._fmState = formState;
+
+  const cats = ['corpo','mente','anima','portafoglio'];
+
+  return `
+  <div style="background:var(--surface);border:1px solid var(--border);border-radius:2px;padding:14px">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px">
+      <div style="font-family:'Cinzel',serif;font-size:10px;color:var(--text);letter-spacing:1px;text-transform:uppercase">
+        ${isNew?'Nuova Formula Magica':'Modifica Formula'}
+      </div>
+      <button onclick="_formulaMappaForm=null;window._fmState=null;renderFormuleMappa()"
+        style="background:none;border:none;color:var(--text-dim);font-size:14px;cursor:pointer">✕</button>
+    </div>
+
+    <!-- Icona + Nome -->
+    <div style="display:flex;gap:8px;margin-bottom:10px">
+      <input id="fm-icon" value="${formState.icon}"
+        style="width:44px;text-align:center;font-size:20px;background:var(--surface2);border:1px solid var(--border);border-radius:2px;padding:6px"
+        oninput="window._fmState.icon=this.value">
+      <input class="form-inp" id="fm-nome" value="${formState.nome}" placeholder="Nome formula..."
+        style="flex:1" oninput="window._fmState.nome=this.value">
+    </div>
+
+    <!-- Durata -->
+    <div style="font-family:'Cinzel',serif;font-size:8px;letter-spacing:1px;color:var(--text-dim);text-transform:uppercase;margin-bottom:5px">Durata</div>
+    <input class="form-inp" id="fm-dur" value="${formState.dur}" placeholder="es. 15 min, 30 min..."
+      style="margin-bottom:10px" oninput="window._fmState.dur=this.value">
+
+    <!-- Frequenza 1-7 -->
+    <div style="font-family:'Cinzel',serif;font-size:8px;letter-spacing:1px;color:var(--text-dim);text-transform:uppercase;margin-bottom:6px">
+      Frequenza settimanale — guida il trigger automatico
+    </div>
+    <div style="display:flex;gap:3px;margin-bottom:10px">
+      ${[1,2,3,4,5,6,7].map(n=>`
+      <div onclick="window._fmState.frequenza=${n};renderFormuleMappa()"
+        style="flex:1;height:32px;border-radius:2px;cursor:pointer;transition:all 0.15s;
+        display:flex;align-items:center;justify-content:center;
+        font-family:'Cinzel',serif;font-size:9px;
+        background:${formState.frequenza>=n?'rgba(74,154,186,0.2)':'var(--surface2)'};
+        border:1px solid ${formState.frequenza>=n?'rgba(74,154,186,0.5)':'var(--border)'};
+        color:${formState.frequenza>=n?'var(--zen)':'var(--text-dim)'}">
+        ${n}
+      </div>`).join('')}
+    </div>
+    <div style="font-size:9px;color:var(--text-dim);font-style:italic;margin-bottom:10px">
+      ${formState.frequenza}×/sett — ${
+        formState.frequenza>=6?'quasi ogni giorno':
+        formState.frequenza>=4?'frequente':
+        formState.frequenza>=2?'alcune volte':'raramente'
+      }
+    </div>
+
+    <!-- Effetti -->
+    <div style="font-family:'Cinzel',serif;font-size:8px;letter-spacing:1px;color:var(--text-dim);text-transform:uppercase;margin-bottom:6px">Effetti (multipli)</div>
+    <div style="display:flex;flex-wrap:wrap;gap:4px;margin-bottom:10px">
+      ${EFFETTI_FORMULA.map(e=>{
+        const sel = (formState.effettiMappa||[]).includes(e.id);
+        return `<div onclick="toggleFMEffetto('${e.id}')"
+          style="padding:5px 10px;cursor:pointer;border-radius:2px;transition:all 0.15s;
+          background:${sel?'rgba(74,154,186,0.12)':'var(--surface2)'};
+          border:1px solid ${sel?'rgba(74,154,186,0.5)':'var(--border)'};
+          font-family:'Cinzel',serif;font-size:8px;
+          color:${sel?'var(--zen)':'var(--text-dim)'}">
+          ${e.icon} ${e.label}
+        </div>`;
+      }).join('')}
+    </div>
+
+    <!-- Gerarchia Boss → Varco → Formula -->
+    <div style="font-family:'Cinzel',serif;font-size:8px;letter-spacing:1px;color:var(--text-dim);text-transform:uppercase;margin-bottom:6px">
+      🔗 Varchi collegati — gerarchia attivazione
+    </div>
+    <div style="display:flex;flex-direction:column;gap:3px;margin-bottom:12px">
+      ${gameState.varchi.map(v=>{
+        const sel = (formState.dungeonsCollegati||[]).includes(v.id);
+        // Boss della stessa categoria (nonno della formula)
+        const bossNonno = (gameState.eventi||[]).find(e =>
+          e.tipo==='boss' && e.cat===v.cat && !e.completato
+        );
+        return `<div onclick="toggleFMDungeon(${v.id})"
+          style="cursor:pointer;border-radius:2px;margin-bottom:${bossNonno&&sel?2:0}px;
+          background:${sel?'rgba(201,168,76,0.06)':'var(--surface2)'};
+          border:1px solid ${sel?'var(--gold-dim)':'var(--border)'};
+          overflow:hidden;transition:all 0.15s">
+          <div style="display:flex;align-items:center;gap:8px;padding:7px 10px">
+            <span style="font-size:14px">${v.icon}</span>
+            <div style="flex:1">
+              <span style="font-family:'Cinzel',serif;font-size:9px;color:${sel?'var(--gold)':'var(--text-dim)'}">${v.nome}</span>
+              <span style="font-size:8px;color:var(--text-dim);margin-left:4px">${v.cat}</span>
+            </div>
+            ${sel?`<span style="font-size:10px;color:var(--gold)">✓</span>`:''}
+          </div>
+          ${sel&&bossNonno?`
+          <div style="background:rgba(154,48,48,0.06);border-top:1px solid var(--red-dim);padding:4px 10px 4px 32px;display:flex;align-items:center;gap:6px">
+            <span style="font-size:10px">👁️</span>
+            <span style="font-family:'Cinzel',serif;font-size:7px;letter-spacing:1px;color:var(--red-bright)">Boss: ${bossNonno.nome}</span>
+            <span style="font-size:7px;color:var(--text-dim)">comanda questo varco</span>
+          </div>`:''}
+        </div>`;
+      }).join('')}
+      ${gameState.varchi.length===0?'<div style="font-size:9px;color:var(--text-dim);font-style:italic">Nessun varco. Aggiungili prima in Attività.</div>':''}
+    </div>
+
+    <!-- Azioni -->
+    <div style="display:flex;gap:8px">
+      ${!formState.isDefault?`<button onclick="deleteFMCustom('${formState.id}')" style="padding:9px 12px;background:none;border:1px solid var(--red-dim);border-radius:1px;font-family:'Cinzel',serif;font-size:8px;color:var(--red-bright);cursor:pointer">✕</button>`:''}
+      <button onclick="_formulaMappaForm=null;window._fmState=null;renderFormuleMappa()"
+        class="form-btn no" style="flex:1;padding:9px">Annulla</button>
+      <button onclick="saveFormulaMappaForm()"
+        class="form-btn ok" style="flex:1;padding:9px">✓ Salva</button>
+    </div>
+  </div>`;
+}
+
+function toggleFMEffetto(id){
+  if(!window._fmState) return;
+  const arr = window._fmState.effettiMappa || [];
+  const idx = arr.indexOf(id);
+  if(idx===-1) arr.push(id); else arr.splice(idx,1);
+  window._fmState.effettiMappa = arr;
+  renderFormuleMappa();
+}
+function toggleFMDungeon(id){
+  if(!window._fmState) return;
+  const arr = window._fmState.dungeonsCollegati || [];
+  const idx = arr.indexOf(id);
+  if(idx===-1) arr.push(id); else arr.splice(idx,1);
+  window._fmState.dungeonsCollegati = arr;
+  renderFormuleMappa();
+}
+
+function saveFormulaMappaForm(){
+  const st = window._fmState;
+  if(!st) return;
+  const nome = document.getElementById('fm-nome')?.value?.trim() || st.nome;
+  if(!nome){ toast('Inserisci un nome!'); return; }
+  st.nome = nome;
+  st.icon = document.getElementById('fm-icon')?.value?.trim() || st.icon;
+  st.dur  = document.getElementById('fm-dur')?.value?.trim()  || st.dur;
+
+  if(st.isDefault){
+    // Aggiorna i metadati della formula default in gameState.formuleDefaultOverride
+    if(!gameState.formuleDefaultOverride) gameState.formuleDefaultOverride = {};
+    gameState.formuleDefaultOverride[st.id] = {
+      frequenza: st.frequenza,
+      effettiMappa: st.effettiMappa,
+      dungeonsCollegati: st.dungeonsCollegati,
+    };
+    // Aggiorna anche FORMULE_DEF runtime
+    const fdef = FORMULE_DEF.find(f=>f.id===st.id);
+    if(fdef){
+      fdef.frequenza = st.frequenza;
+      fdef.effettiMappa = st.effettiMappa;
+      fdef.dungeonsCollegati = st.dungeonsCollegati;
+    }
+  } else {
+    // Salva/aggiorna formula custom
+    if(!gameState.formuleCustom) gameState.formuleCustom = [];
+    const existing = gameState.formuleCustom.findIndex(f=>f.id===st.id);
+    const record = {
+      id:st.id, icon:st.icon, nome:st.nome, dur:st.dur,
+      frequenza:st.frequenza, effettiMappa:st.effettiMappa,
+      dungeonsCollegati:st.dungeonsCollegati,
+      effetti:{}, desc:'Formula personalizzata', varcoCollegato:null, drainMod:-0.01,
+    };
+    if(existing>=0) gameState.formuleCustom[existing] = record;
+    else gameState.formuleCustom.push(record);
+  }
+
+  saveAll();
+  _formulaMappaForm = null;
+  window._fmState = null;
+  renderFormuleMappa();
+  renderFormuleAvv();
+  toast(`✓ Formula "${nome}" salvata`);
+}
+
+function deleteFMCustom(id){
+  if(!confirm('Eliminare questa formula?')) return;
+  gameState.formuleCustom = (gameState.formuleCustom||[]).filter(f=>f.id!==id);
+  saveAll();
+  _formulaMappaForm = null;
+  window._fmState = null;
+  renderFormuleMappa();
+  toast('Formula eliminata');
+}
+
+/* Restituisce tutte le formule (default + custom) per renderFormuleAvv */
+function getAllFormule(){
+  const overrides = gameState.formuleDefaultOverride || {};
+  const defaults = FORMULE_DEF.map(f => ({
+    ...f,
+    frequenza: overrides[f.id]?.frequenza ?? f.frequenza ?? 3,
+    effettiMappa: overrides[f.id]?.effettiMappa ?? f.effettiMappa ?? [],
+    dungeonsCollegati: overrides[f.id]?.dungeonsCollegati ?? f.dungeonsCollegati ?? [],
+  }));
+  const custom = (gameState.formuleCustom||[]);
+  return [...defaults, ...custom];
+}
+
+/* ════════════════════════════════════════════════
+   LOCANDA — AVERI (oggetti acquistati)
+════════════════════════════════════════════════ */
+
+function renderAveri(){
+  const el = document.getElementById('locanda-averi-list');
+  if(!el) return;
+
+  const acquistati = (gameState.emporioOggetti||[])
+    .filter(o => o.acquistato)
+    .sort((a,b) => new Date(b.dataAcquisto||0) - new Date(a.dataAcquisto||0));
+
+  if(!acquistati.length){
+    el.innerHTML = `<div style="padding:32px 20px;text-align:center">
+      <div style="font-size:32px;margin-bottom:10px">🏺</div>
+      <div style="font-family:'Cinzel',serif;font-size:11px;color:var(--text-dim);letter-spacing:1px">Nessun avere ancora</div>
+      <div style="font-size:10px;color:var(--text-dim);font-style:italic;margin-top:4px">Acquista oggetti dall'Emporio dello Stregone</div>
+    </div>`;
+    return;
+  }
+
+  let html = '';
+  acquistati.forEach(o => {
+    const dStr = o.dataAcquisto
+      ? new Date(o.dataAcquisto).toLocaleDateString('it-IT',{weekday:'long',day:'numeric',month:'long',year:'numeric'})
+      : '—';
+    const reqHtml = (o.requisiti||[]).map(r => {
+      const rm = REQUISITI_OPTIONS.find(x=>x.id===r);
+      return rm?`<span class="pill-badge" style="font-size:7px;border-color:var(--gold-dim);color:var(--gold)">${rm.icon} ${rm.id}</span>`:'';
+    }).join('');
+
+    html += `
+    <div style="background:var(--surface);border:1px solid var(--green-dim);border-radius:2px;
+      padding:14px 16px;margin-bottom:8px;position:relative;overflow:hidden">
+      <div style="position:absolute;left:0;top:0;bottom:0;width:3px;background:var(--green)"></div>
+      <div style="padding-left:8px">
+        <div style="font-family:'Cinzel',serif;font-size:14px;color:var(--text)">${o.nome}</div>
+        ${o.desc?`<div style="font-size:10px;color:var(--text-dim);font-style:italic;margin-top:3px">${o.desc}</div>`:''}
+
+        <!-- Data e prezzo pagato -->
+        <div style="display:flex;gap:12px;margin-top:8px;flex-wrap:wrap">
+          <div>
+            <div style="font-family:'Cinzel',serif;font-size:7px;letter-spacing:1px;color:var(--text-dim);text-transform:uppercase;margin-bottom:2px">Acquistato</div>
+            <div style="font-family:'Cinzel',serif;font-size:10px;color:var(--text)">${dStr}</div>
+          </div>
+          <div>
+            <div style="font-family:'Cinzel',serif;font-size:7px;letter-spacing:1px;color:var(--text-dim);text-transform:uppercase;margin-bottom:2px">Pagato</div>
+            <div style="font-family:'Cinzel',serif;font-size:14px;color:var(--gold)">${o.prezzoAcquisto||o.prezzo} ◈</div>
+          </div>
+        </div>
+
+        <!-- Requisiti necessari -->
+        ${reqHtml?`<div style="margin-top:8px">
+          <div style="font-family:'Cinzel',serif;font-size:7px;letter-spacing:1px;color:var(--text-dim);text-transform:uppercase;margin-bottom:4px">Era necessario</div>
+          <div style="display:flex;gap:4px;flex-wrap:wrap">${reqHtml}</div>
+        </div>`:''}
+
+        <!-- Effetti -->
+        ${o.effetti?`<div style="margin-top:8px;padding:8px 10px;background:rgba(74,154,186,0.06);border:1px solid rgba(74,154,186,0.3);border-radius:2px">
+          <div style="font-family:'Cinzel',serif;font-size:7px;letter-spacing:1px;color:var(--zen);text-transform:uppercase;margin-bottom:3px">✨ Effetti</div>
+          <div style="font-size:10px;color:var(--text)">${o.effetti}</div>
+        </div>`:''}
+      </div>
+    </div>`;
+  });
+
+  el.innerHTML = html;
+}
+
+/* ════════════════════════════════════════════════
+   MAPPA — TEMPLATE SAVE/LOAD MODAL
+════════════════════════════════════════════════ */
+
+function openTemplateSaveModal(){
+  const existing = document.getElementById('tpl-modal');
+  if(existing) existing.remove();
+
+  const modal = document.createElement('div');
+  modal.id = 'tpl-modal';
+  modal.style.cssText = 'position:fixed;inset:0;z-index:220;display:flex;align-items:flex-end;justify-content:center';
+  modal.innerHTML = `
+    <div onclick="this.parentElement.remove()" style="position:absolute;inset:0;background:rgba(0,0,0,0.7)"></div>
+    <div style="position:relative;z-index:1;width:100%;max-width:480px;background:var(--bg);
+      border-top:1px solid var(--gold-dim);border-radius:2px 2px 0 0;padding:18px 18px 40px">
+      <div style="text-align:center;margin-bottom:14px">
+        <div style="width:32px;height:3px;background:var(--border);border-radius:2px;margin:0 auto"></div>
+      </div>
+      <div style="font-family:'Cinzel',serif;font-size:14px;color:var(--gold);margin-bottom:4px">📦 Salva Template</div>
+      <div style="font-size:10px;color:var(--text-dim);margin-bottom:14px">Scegli cosa includere nel template</div>
+
+      <!-- Cosa salvare -->
+      <div style="display:flex;flex-direction:column;gap:6px;margin-bottom:14px">
+        <label style="display:flex;align-items:center;gap:10px;padding:10px 14px;background:var(--surface2);border:1px solid var(--border);border-radius:2px;cursor:pointer">
+          <input type="checkbox" id="tpl-save-attivita" checked style="width:16px;height:16px;accent-color:var(--gold)">
+          <div>
+            <div style="font-family:'Cinzel',serif;font-size:11px;color:var(--text)">⚔ Attività</div>
+            <div style="font-size:9px;color:var(--text-dim);margin-top:2px">${gameState.varchi.length} varchi configurati</div>
+          </div>
+        </label>
+        <label style="display:flex;align-items:center;gap:10px;padding:10px 14px;background:var(--surface2);border:1px solid var(--border);border-radius:2px;cursor:pointer">
+          <input type="checkbox" id="tpl-save-pratiche" checked style="width:16px;height:16px;accent-color:var(--gold)">
+          <div>
+            <div style="font-family:'Cinzel',serif;font-size:11px;color:var(--text)">✨ Pratiche</div>
+            <div style="font-size:9px;color:var(--text-dim);margin-top:2px">${getAllFormule().length} pratiche configurate</div>
+          </div>
+        </label>
+      </div>
+
+      <!-- Nome template -->
+      <input class="form-inp" id="tpl-save-nome" placeholder="Nome template..."
+        value="Settimana ${new Date().toLocaleDateString('it-IT',{day:'numeric',month:'short'})}">
+
+      <div style="display:flex;gap:8px;margin-top:12px">
+        <button onclick="document.getElementById('tpl-modal').remove()"
+          class="form-btn no" style="flex:1;padding:10px">Annulla</button>
+        <button onclick="saveTemplateFromModal()"
+          class="form-btn ok" style="flex:1;padding:10px">✓ Salva</button>
+      </div>
+    </div>`;
+  document.body.appendChild(modal);
+}
+
+function saveTemplateFromModal(){
+  const nome       = document.getElementById('tpl-save-nome')?.value?.trim();
+  const inclAttiv  = document.getElementById('tpl-save-attivita')?.checked;
+  const inclPrat   = document.getElementById('tpl-save-pratiche')?.checked;
+  if(!nome){ toast('Inserisci un nome!'); return; }
+  if(!inclAttiv && !inclPrat){ toast('Seleziona almeno un gruppo!'); return; }
+
+  const id = Date.now();
+  const newTpl = {
+    id, nome,
+    tipo: inclAttiv && inclPrat ? 'completo' : inclAttiv ? 'solo-attivita' : 'solo-pratiche',
+    varchi:          inclAttiv ? JSON.parse(JSON.stringify(gameState.varchi)) : null,
+    formuleCustom:   inclPrat  ? JSON.parse(JSON.stringify(gameState.formuleCustom||[])) : null,
+    formuleOverride: inclPrat  ? JSON.parse(JSON.stringify(gameState.formuleDefaultOverride||{})) : null,
+    creato: new Date().toISOString().slice(0,10),
+  };
+  if(!gameState.templates) gameState.templates = [];
+  gameState.templates.push(newTpl);
+  if(inclAttiv) gameState.templateAttivo = id;
+  saveAll();
+  document.getElementById('tpl-modal')?.remove();
+  renderTemplateManager();
+  toast(`📦 Template "${nome}" salvato`);
 }
 
 /* ════════════════════════════════════════════════
@@ -4038,6 +4805,95 @@ function closeTemplateManager(e){
   document.getElementById('overlay-templates').classList.remove('active');
 }
 
+/* ── LOCANDIERE ── */
+// Definizione azioni igiene — cadenza ideale e limite occorrenze
+// cadenzaGg = giorni tra un'occorrenza e l'altra (ideale)
+// limitePerPeriodo = max occorrenze nel periodo (0 = nessun limite)
+// periodoGg = durata del periodo di riferimento per il limite
+if(!cfg.igieneConf) cfg.igieneConf = [
+  {key:'barba',     icon:'🧔', nome:'Farsi la Barba',      cadenzaGg:2,  limitePerPeriodo:0, periodoGg:7},
+  {key:'rasatura',  icon:'🪒', nome:'Rasatura Completa',    cadenzaGg:14, limitePerPeriodo:1, periodoGg:14},
+  {key:'capelli',   icon:'💇', nome:'Taglio Capelli',       cadenzaGg:30, limitePerPeriodo:1, periodoGg:30},
+  {key:'lavatrice', icon:'🫧', nome:'Fare la Lavatrice',    cadenzaGg:3,  limitePerPeriodo:0, periodoGg:7},
+];
+
+function openLocandiere(){
+  // Soglie
+  const sv = v => v !== undefined ? v : '';
+  document.getElementById('loc-ora-pranzo').value  = cfg.oraPranzo  || '13:00';
+  document.getElementById('loc-ora-cena').value    = cfg.oraCena    || '20:00';
+  document.getElementById('loc-sleep-target').value    = cfg.locSleepIdeal || 8;
+  document.getElementById('loc-acqua-target').value    = cfg.acquaTarget   || 8;
+  document.getElementById('loc-verdura-target').value  = cfg.verduraIdeal  || 3;
+  document.getElementById('loc-frutta-target').value   = cfg.fruttaIdeal   || 2;
+  document.getElementById('loc-proteine-target').value = cfg.proteineIdeal || 2;
+
+  // Igiene list
+  renderLocIgieneConf();
+
+  // Apri soglie di default
+  document.querySelectorAll('.loc-sec-body').forEach(b => b.classList.remove('open'));
+  document.querySelectorAll('.loc-arrow').forEach(a => a.style.transform = '');
+  toggleLocSec('soglie');
+  document.getElementById('overlay-locandiere').classList.add('active');
+}
+
+function renderLocIgieneConf(){
+  const list = document.getElementById('loc-igiene-list');
+  if(!list) return;
+  let html = (cfg.igieneConf||[]).map((ig,i) => `
+    <div style="border:1px solid var(--border);border-radius:2px;padding:9px 12px;margin-bottom:6px">
+      <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px">
+        <span style="font-size:18px">${ig.icon}</span>
+        <span style="font-family:'Cinzel',serif;font-size:9px;letter-spacing:1px;color:var(--text)">${ig.nome}</span>
+      </div>
+      <div class="loc-grid">
+        <div class="loc-field">
+          <label>Cadenza ideale (giorni)</label>
+          <input class="loc-inp" type="number" min="1" value="${ig.cadenzaGg}"
+            onchange="cfg.igieneConf[${i}].cadenzaGg=+this.value">
+        </div>
+        <div class="loc-field">
+          <label>Limite (volte ogni <span id="loc-ig-periodo-${i}">${ig.periodoGg}</span>gg)</label>
+          <input class="loc-inp" type="number" min="0" value="${ig.limitePerPeriodo}"
+            onchange="cfg.igieneConf[${i}].limitePerPeriodo=+this.value"
+            placeholder="0 = nessun limite">
+        </div>
+      </div>
+    </div>`).join('');
+  list.innerHTML = html;
+}
+
+function closeLocandiere(e){
+  if(e && e.target !== document.getElementById('overlay-locandiere')) return;
+  document.getElementById('overlay-locandiere').classList.remove('active');
+}
+
+function toggleLocSec(key){
+  const body  = document.getElementById('loc-sec-'+key);
+  const arrow = document.getElementById('loc-arrow-'+key);
+  if(!body) return;
+  const isOpen = body.classList.contains('open');
+  body.classList.toggle('open', !isOpen);
+  if(arrow) arrow.style.transform = isOpen ? '' : 'rotate(180deg)';
+}
+
+function saveLocandiere(){
+  cfg.oraPranzo     = document.getElementById('loc-ora-pranzo')?.value  || cfg.oraPranzo;
+  cfg.oraCena       = document.getElementById('loc-ora-cena')?.value    || cfg.oraCena;
+  cfg.locSleepIdeal = parseFloat(document.getElementById('loc-sleep-target')?.value)    || cfg.locSleepIdeal;
+  cfg.acquaTarget   = parseFloat(document.getElementById('loc-acqua-target')?.value)    || cfg.acquaTarget;
+  cfg.verduraIdeal  = parseFloat(document.getElementById('loc-verdura-target')?.value)  || cfg.verduraIdeal;
+  cfg.fruttaIdeal   = parseFloat(document.getElementById('loc-frutta-target')?.value)   || cfg.fruttaIdeal;
+  cfg.proteineIdeal = parseFloat(document.getElementById('loc-proteine-target')?.value) || cfg.proteineIdeal;
+  // igieneConf già aggiornato inline dagli onchange
+  saveAll();
+  renderLocanda();
+  closeLocandiere();
+  toast('Soglie aggiornate');
+}
+
+
 function renderTemplateManager(){
   const templates = gameState.templates || [];
   const settimanaKey = getSettimanaKey();
@@ -4058,8 +4914,13 @@ function renderTemplateManager(){
   templates.forEach(t=>{
     const isActive = t.id === activeTplId;
     const varchiCount = t.varchi ? t.varchi.length : gameState.varchi.length;
-    const tipoLabel = t.tipo === 'singola' ? '🎯 Singola' : '📦 Blocco';
-    const tipoCol   = t.tipo === 'singola' ? 'var(--zen)' : 'var(--purple-light)';
+    const tipoMap = {
+      'singola':'🎯 Singola attività', 'blocco':'📦 Attività',
+      'completo':'📦✨ Completo', 'solo-attivita':'⚔ Solo Attività',
+      'solo-pratiche':'✨ Solo Pratiche',
+    };
+    const tipoLabel = tipoMap[t.tipo] || '📦 Template';
+    const tipoCol   = t.tipo==='singola'?'var(--zen)':t.tipo==='completo'?'var(--gold)':'var(--purple-light)';
     html += `<div class="template-item ${isActive?'active':''}" onclick="selectTemplate(${t.id})">
       <div style="flex:1">
         <div style="font-family:'Cinzel',serif;font-size:11px;color:var(--text)">${t.nome}</div>
@@ -4110,34 +4971,45 @@ function selectTemplate(id){
 
 function loadTemplate(id){
   const tpl = (gameState.templates||[]).find(t=>t.id===id);
-  if(!tpl || !tpl.varchi) return;
+  if(!tpl) return;
 
   if(tpl.tipo === 'singola'){
-    // Singola: chiedi se aggiungere o sostituire l'attività con stesso nome
-    const tplV = tpl.varchi[0];
+    const tplV = tpl.varchi?.[0];
     if(!tplV) return;
     const existing = gameState.varchi.find(v=>v.nome===tplV.nome);
     if(existing){
-      // Sostituisce quella esistente con i valori del template
       const idx = gameState.varchi.indexOf(existing);
-      const restored = { ...JSON.parse(JSON.stringify(tplV)), id: existing.id, done: existing.done, late: existing.late, sortOrder: existing.sortOrder };
-      gameState.varchi[idx] = restored;
-      toast(`Attività "${tplV.nome}" ripristinata dal template`);
+      gameState.varchi[idx] = { ...JSON.parse(JSON.stringify(tplV)), id:existing.id, done:existing.done, late:existing.late, sortOrder:existing.sortOrder };
+      toast(`Attività "${tplV.nome}" ripristinata`);
     } else {
-      // Aggiunge come nuova
-      const newV = { ...JSON.parse(JSON.stringify(tplV)), id: Date.now(), done: false, late: false, sortOrder: gameState.varchi.length };
-      gameState.varchi.push(newV);
-      toast(`Attività "${tplV.nome}" aggiunta dal template`);
+      gameState.varchi.push({ ...JSON.parse(JSON.stringify(tplV)), id:Date.now(), done:false, late:false, sortOrder:gameState.varchi.length });
+      toast(`Attività "${tplV.nome}" aggiunta`);
     }
   } else {
-    // Blocco: sostituisce tutte le attività
-    gameState.varchi = JSON.parse(JSON.stringify(tpl.varchi));
-    toast(`Template blocco "${tpl.nome}" caricato`);
+    // Completo, solo-attivita, solo-pratiche, blocco (legacy)
+    const inclAttiv = tpl.tipo !== 'solo-pratiche' && tpl.varchi;
+    const inclPrat  = tpl.tipo !== 'solo-attivita'  && (tpl.formuleCustom !== undefined);
+
+    if(inclAttiv && tpl.varchi){
+      gameState.varchi = JSON.parse(JSON.stringify(tpl.varchi));
+      toast(`Template attività "${tpl.nome}" caricato`);
+    }
+    if(inclPrat){
+      if(tpl.formuleCustom !== null)
+        gameState.formuleCustom = JSON.parse(JSON.stringify(tpl.formuleCustom||[]));
+      if(tpl.formuleOverride !== null)
+        gameState.formuleDefaultOverride = JSON.parse(JSON.stringify(tpl.formuleOverride||{}));
+      toast(`Template pratiche "${tpl.nome}" caricato`);
+    }
+    if(inclAttiv && inclPrat)
+      toast(`Template completo "${tpl.nome}" caricato`);
   }
+
   saveAll();
   renderRoutine();
   renderDungeon();
   renderWeekGrid();
+  renderFormuleAvv();
   closeTemplateManager();
 }
 
@@ -4356,23 +5228,303 @@ function startNrgTick(){
     updateHUD();
     checkSleepAlert();
     updateDrainLabel();
+    updateGlobalStatusBar();
   }, 60000);
 }
 
 function updateDrainLabel(){
+  // Mantieni compatibilità con locanda-drain-label (se esiste ancora)
   const el = document.getElementById('locanda-drain-label');
-  if(!el) return;
-  const drain = calcDrainTotale();
-  const base = cfg.nrgDrainPerMin;
-  const delta = drain - base;
-  const col = delta < -0.005 ? 'var(--green)' : delta > 0.01 ? 'var(--red-bright)' : 'var(--gold)';
-  const arrow = delta < -0.005 ? '▼' : delta > 0.01 ? '▲▲' : '▲';
-  el.innerHTML = `⚡ <span style="color:${col};font-family:'Cinzel',serif;font-size:9px">${arrow} ${drain.toFixed(3)}/min</span>`;
+  if(el){
+    const drain = calcDrainTotale();
+    const base = cfg.nrgDrainPerMin;
+    const delta = drain - base;
+    const col = delta < -0.005 ? 'var(--green)' : delta > 0.01 ? 'var(--red-bright)' : 'var(--gold)';
+    const arrow = delta < -0.005 ? '▼' : delta > 0.01 ? '▲▲' : '▲';
+    el.innerHTML = `⚡ <span style="color:${col};font-family:'Cinzel',serif;font-size:9px">${arrow} ${drain.toFixed(3)}/min</span>`;
+  }
+  updateGlobalStatusBar();
 }
 
 function checkSleepAlert(){
   const alert = document.getElementById('locanda-nrg-alert');
   if(alert) alert.style.display = cfg.nrg <= cfg.nrgSleepThreshold ? 'block' : 'none';
+  updateGlobalStatusBar();
+}
+
+/* ── Global Status Bar ── */
+const FASE_ICONS = {
+  mattina:'🌅', pranzo:'🍽', pomeriggio:'☀️', tramonto:'🌆', cena:'🍷', notte:'🌙'
+};
+
+function updateGlobalStatusBar(){
+  const fase = getFaseAttuale();
+
+  // Fase
+  const faseLabel = document.getElementById('gsb-fase-label');
+  const faseIcon  = document.getElementById('gsb-fase-icon');
+  if(gameState.dormendo){
+    if(faseIcon)  faseIcon.textContent  = '😴';
+    if(faseLabel){ faseLabel.textContent = 'Dormendo'; faseLabel.style.color = 'var(--text-dim)'; }
+  } else {
+    if(faseIcon)  faseIcon.textContent  = FASE_ICONS[fase.id] || '🌅';
+    if(faseLabel){ faseLabel.textContent = fase.label; faseLabel.style.color = 'var(--gold)'; }
+  }
+
+  // Semaforo drain
+  const drain = calcDrainTotale();
+  const base  = cfg.nrgDrainPerMin;
+  const delta = drain - base;
+  const dot   = document.getElementById('gsb-drain-dot');
+  if(dot){
+    // delta < -0.01 → forte boost (blu), delta < -0.003 → boost (verde)
+    // delta < 0.01  → neutro/lieve (giallo), delta >= 0.01 → drain (rosso)
+    if(delta < -0.01)       dot.textContent = '🔵';
+    else if(delta < -0.003) dot.textContent = '🟢';
+    else if(delta < 0.01)   dot.textContent = '🟡';
+    else                    dot.textContent = '🔴';
+  }
+
+  // Stati attivi — emoji
+  const oggi = todayStr();
+  const abitudiniAttive = (gameState.abitudini||[]).filter(a =>
+    a.attiva && !getCuraState(a).curata && !(a.nonFatte||[]).includes(oggi)
+  );
+  const statiExtra = (gameState.statiAttivi||[]);
+  const iconsEl = document.getElementById('gsb-stati-icons');
+  const emptyEl = document.getElementById('gsb-stati-empty');
+  const allIcons = [
+    ...abitudiniAttive.map(a => (STATI_META[a.stato]||STATI_META.paralisi).icon),
+    ...statiExtra.map(s => s.icon||'⚠️'),
+  ];
+  if(iconsEl) iconsEl.textContent = allIcons.join(' ');
+  if(emptyEl) emptyEl.style.display = allIcons.length ? 'none' : 'inline';
+}
+
+function openSheet(id){
+  if(id === 'gsb-nrg')    renderGsbNrgSheet();
+  if(id === 'gsb-riposo') renderRiposoSheet();
+  if(id === 'gsb-stati')  renderGsbStatiSheet();
+  document.getElementById('sheet-'+id)?.classList.add('active');
+}
+function closeSheet(id, event){
+  if(event && event.target !== document.getElementById('sheet-'+id)) return;
+  document.getElementById('sheet-'+id)?.classList.remove('active');
+}
+function openAddVarco(){openSheet('add-varco');}
+
+/* ── Sheet NRG ── */
+function renderGsbNrgSheet(){
+  const drain = calcDrainTotale();
+  const base  = cfg.nrgDrainPerMin;
+  const delta = drain - base;
+  let dotChar, dotCol;
+  if(delta < -0.01)       { dotChar='🔵'; dotCol='#4a7aff'; }
+  else if(delta < -0.003) { dotChar='🟢'; dotCol='var(--green)'; }
+  else if(delta < 0.01)   { dotChar='🟡'; dotCol='var(--gold)'; }
+  else                    { dotChar='🔴'; dotCol='var(--red-bright)'; }
+
+  const detail = document.getElementById('gsb-nrg-drain-detail');
+  if(detail) detail.innerHTML = `
+    <div style="display:flex;align-items:center;gap:12px;background:var(--surface2);border:1px solid var(--border);border-radius:2px;padding:10px 14px">
+      <span style="font-size:28px">${dotChar}</span>
+      <div>
+        <div style="font-family:'Cinzel',serif;font-size:8px;color:var(--text-dim);letter-spacing:1px;margin-bottom:3px">DRAIN NRG</div>
+        <div style="font-family:'Cinzel',serif;font-size:14px;color:${dotCol}">⚡ ${drain.toFixed(3)}<span style="font-size:9px">/min</span></div>
+        <div style="font-family:'Cinzel',serif;font-size:8px;color:var(--text-dim)">base ${base.toFixed(3)} · mod ${delta>=0?'+':''}${delta.toFixed(3)}</div>
+      </div>
+    </div>`;
+
+  const l   = gameState.locanda;
+  const tot = getTotaliGiornata();
+  const ore = l.oreSonno || 0;
+  const factors = [];
+
+  const sleepMod = calcSleepDrainMod(ore);
+  if(Math.abs(sleepMod) > 0.001)
+    factors.push({icon:'🌙', label:`Sonno ${ore}h`, val:sleepMod, desc: ore >= cfg.locSleepIdeal ? 'dormito bene' : ore < cfg.locSleepMin ? 'dormito poco' : 'parziale'});
+
+  const acquaMod = calcAcquaDrainMod(tot.acqua);
+  if(Math.abs(acquaMod - 1) > 0.05)
+    factors.push({icon:'💧', label:`Acqua ${tot.acqua}/${cfg.acquaTarget}`, val:(acquaMod-1)*base, desc: tot.acqua >= cfg.acquaTarget ? 'target ok' : 'sotto target'});
+
+  ['verdura','frutta','proteine'].forEach(k => {
+    const ideal = k==='verdura'?cfg.verduraIdeal:k==='frutta'?cfg.fruttaIdeal:cfg.proteineIdeal;
+    const modFn = k==='verdura'?calcVerduraDrainMod:k==='frutta'?calcFruttaDrainMod:calcProteineDrainMod;
+    const mod = modFn(tot[k]);
+    const icons = {verdura:'🥦',frutta:'🍎',proteine:'🥩'};
+    if(Math.abs(mod) > 0.001)
+      factors.push({icon:icons[k], label:`${k.charAt(0).toUpperCase()+k.slice(1)} ${tot[k]}/${ideal}`, val:mod, desc: tot[k]>=ideal?'ok':'sotto soglia'});
+  });
+  if(tot.junk > 0)
+    factors.push({icon:'🍔', label:`Junk ×${tot.junk}`, val: tot.junk * cfg.junkDrainExtra, desc:'extra drain'});
+
+  const factorsEl = document.getElementById('gsb-nrg-factors');
+  if(factorsEl){
+    if(!factors.length){
+      factorsEl.innerHTML = `<div style="font-size:10px;color:var(--text-dim);font-style:italic;padding:6px 0">Solo drain base — nessun modificatore.</div>`;
+    } else {
+      factorsEl.innerHTML = factors.map(f => {
+        const sign = f.val >= 0 ? '+' : '';
+        const col2 = f.val > 0 ? 'var(--red-bright)' : 'var(--green)';
+        return `<div style="display:flex;align-items:center;gap:10px;padding:7px 0;border-bottom:1px solid var(--border)">
+          <span style="font-size:15px;flex-shrink:0">${f.icon}</span>
+          <div style="flex:1">
+            <div style="font-family:'Cinzel',serif;font-size:9px;color:var(--text)">${f.label}</div>
+            <div style="font-size:9px;color:var(--text-dim)">${f.desc}</div>
+          </div>
+          <div style="font-family:'Cinzel',serif;font-size:10px;color:${col2};flex-shrink:0">${sign}${f.val.toFixed(3)}</div>
+        </div>`;
+      }).join('');
+    }
+  }
+}
+
+/* ── Sheet Stati ── */
+function renderGsbStatiSheet(){
+  const body = document.getElementById('gsb-stati-body');
+  if(!body) return;
+  const oggi = todayStr();
+  const abitudini = (gameState.abitudini||[]).filter(a => a.attiva);
+  const statiExtra = gameState.statiAttivi||[];
+
+  let html = '';
+
+  if(!abitudini.length && !statiExtra.length){
+    body.innerHTML = `<div style="font-size:10px;color:var(--text-dim);font-style:italic;padding:8px 0">Nessun cambiamento di stato attivo.</div>`;
+    return;
+  }
+
+  abitudini.forEach(a => {
+    const stato   = STATI_META[a.stato] || STATI_META.paralisi;
+    const grav    = GRAV_OPTIONS.find(g=>g.id===a.gravita) || GRAV_OPTIONS[1];
+    const cura    = getCuraState(a);
+    const curata  = cura.curata;
+    const nonFatta= (a.nonFatte||[]).includes(oggi);
+    const _open   = window._gsbStatiOpen || {};
+    const open    = _open[a.id];
+
+    const borderCol = curata ? 'var(--green-dim)' : nonFatta ? 'var(--green-dim)' : 'var(--red-dim)';
+    const accentCol = curata ? 'var(--green)' : nonFatta ? 'var(--green)' : 'var(--red-bright)';
+
+    html += `
+    <div style="border:1px solid ${borderCol};border-radius:2px;margin-bottom:6px;overflow:hidden">
+      <!-- Riga principale -->
+      <div style="display:flex;align-items:center;gap:8px;padding:9px 12px;position:relative">
+        <div style="position:absolute;left:0;top:0;bottom:0;width:3px;background:${accentCol}"></div>
+        <span style="font-size:16px;padding-left:4px">${curata?'✨':stato.icon}</span>
+        <div style="flex:1;cursor:pointer" onclick="window._gsbStatiOpen=window._gsbStatiOpen||{};window._gsbStatiOpen[${a.id}]=!window._gsbStatiOpen[${a.id}];renderGsbStatiSheet()">
+          <div style="font-family:'Cinzel',serif;font-size:10px;color:${curata?'var(--green)':nonFatta?'var(--green)':'var(--text)'}">${a.titolo}</div>
+          <div style="font-size:9px;color:var(--text-dim);margin-top:1px">${stato.icon} ${a.stato} · ${grav.label}</div>
+        </div>
+        ${!curata ? `
+        <button onclick="toggleAbitudineOggi(${a.id});setTimeout(renderGsbStatiSheet,50)"
+          style="padding:5px 10px;background:${nonFatta?'rgba(74,154,90,0.1)':'transparent'};
+          border:1px solid ${nonFatta?'var(--green-dim)':'var(--border)'};border-radius:1px;
+          font-family:'Cinzel',serif;font-size:8px;color:${nonFatta?'var(--green)':'var(--text-dim)'};
+          cursor:pointer;flex-shrink:0;text-transform:uppercase;letter-spacing:1px">
+          ${nonFatta?'↩ annulla':'✓ curata'}
+        </button>` : ''}
+        <span style="font-size:9px;color:var(--text-dim);cursor:pointer;padding:0 4px"
+          onclick="window._gsbStatiOpen=window._gsbStatiOpen||{};window._gsbStatiOpen[${a.id}]=!window._gsbStatiOpen[${a.id}];renderGsbStatiSheet()">
+          ${open?'▴':'▾'}
+        </span>
+      </div>
+      <!-- Dettagli espansi -->
+      ${open ? `
+      <div style="background:var(--surface2);padding:9px 12px 10px;border-top:1px solid var(--border)">
+        <div style="font-size:9px;color:var(--text-dim);margin-bottom:6px">${stato.desc}</div>
+        ${!curata ? `
+        <div style="margin-top:4px">
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px">
+            <span style="font-family:'Cinzel',serif;font-size:7px;letter-spacing:1px;color:var(--text-dim)">PROGRESSIONE CURA</span>
+            <span style="font-family:'Cinzel',serif;font-size:8px;color:${nonFatta?'var(--green)':'var(--text-dim)'}">
+              ${cura.curaBarra}/${cura.soglia} giorni rimasti
+            </span>
+          </div>
+          <div style="height:4px;background:var(--surface3);border-radius:2px;overflow:hidden">
+            <div style="height:100%;width:${((cura.soglia-cura.curaBarra)/Math.max(1,cura.soglia)*100).toFixed(1)}%;
+              background:${nonFatta?'var(--green)':'var(--red)'};transition:width 0.4s"></div>
+          </div>
+        </div>` : '<div style="font-size:10px;color:var(--green);text-align:center;padding:4px 0">✨ Questa abitudine è curata</div>'}
+      </div>` : ''}
+    </div>`;
+  });
+
+  statiExtra.forEach(s => {
+    html += `
+    <div style="border:1px solid var(--red-dim);border-radius:2px;margin-bottom:6px;padding:9px 12px;display:flex;align-items:center;gap:8px">
+      <span style="font-size:16px">${s.icon||'⚠️'}</span>
+      <div style="flex:1">
+        <div style="font-family:'Cinzel',serif;font-size:10px;color:var(--text)">${s.nome}</div>
+        <div style="font-size:9px;color:var(--text-dim)">${s.effetto} — ${s.desc}</div>
+      </div>
+      <button onclick="curaStato(${s.id});renderGsbStatiSheet();updateGlobalStatusBar()"
+        style="padding:5px 10px;background:transparent;border:1px solid var(--border);border-radius:1px;
+        font-family:'Cinzel',serif;font-size:8px;color:var(--text-dim);cursor:pointer;text-transform:uppercase">
+        Rimuovi
+      </button>
+    </div>`;
+  });
+
+  body.innerHTML = html;
+}
+
+function onFaseClick(){
+  const fase = getFaseAttuale();
+  if(fase.id === 'notte' || gameState.dormendo){
+    renderRiposoSheet();
+    openSheet('gsb-riposo');
+  } else {
+    document.querySelectorAll('.nav-btn').forEach(b => {
+      if(b.textContent.includes('Locanda')) switchView('locanda', b);
+    });
+  }
+}
+
+function renderRiposoSheet(){
+  const sub  = document.getElementById('gsb-riposo-sub');
+  const body = document.getElementById('gsb-riposo-body');
+  const dormendo = gameState.dormendo;
+  const btn  = document.querySelector('#sheet-gsb-riposo .btn-main.btn-red');
+  if(dormendo){
+    if(sub)  sub.textContent = 'Sei in modalità dormiente';
+    if(body) body.innerHTML = `
+      <div style="text-align:center;padding:8px 0;background:var(--surface2);border:1px solid var(--border);border-radius:2px">
+        <div style="font-family:'Cinzel',serif;font-size:9px;color:var(--text-dim);letter-spacing:1px;margin-bottom:6px">RIPOSO INIZIATO ALLE</div>
+        <div style="font-family:'Cinzel',serif;font-size:18px;color:var(--gold)">${dormendo}</div>
+      </div>`;
+    if(btn){ btn.textContent = '☀️ Svegliati'; btn.onclick = svegliati; }
+  } else {
+    const nrg = Math.round(cfg.nrg);
+    if(sub)  sub.textContent = 'Metti il gioco in pausa fino a domani';
+    if(body) body.innerHTML = `
+      <div style="background:var(--surface2);border:1px solid var(--border);border-radius:2px;padding:12px 14px">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px">
+          <span style="font-family:'Cinzel',serif;font-size:8px;color:var(--text-dim);letter-spacing:1px">NRG ATTUALE</span>
+          <span style="font-family:'Cinzel',serif;font-size:14px;color:var(--gold)">⚡ ${nrg}</span>
+        </div>
+        <div style="font-size:10px;color:var(--text-dim);font-style:italic">La NRG base di domani verrà calcolata in base alle attività di oggi.</div>
+      </div>`;
+    if(btn){ btn.textContent = '🌙 Vai a Dormire'; btn.onclick = iniziaRiposo; }
+  }
+}
+
+function iniziaRiposo(){
+  const ora = new Date().toLocaleTimeString('it-IT',{hour:'2-digit',minute:'2-digit'});
+  gameState.dormendo = ora;
+  saveAll();
+  closeSheet('gsb-riposo');
+  updateGlobalStatusBar();
+  toast('Buona notte 🌙');
+}
+
+function svegliati(){
+  gameState.dormendo = null;
+  saveAll();
+  closeSheet('gsb-riposo');
+  updateGlobalStatusBar();
+  toast('Buongiorno ☀️');
 }
 
 /* ── Tick disordine ── */
@@ -4393,166 +5545,191 @@ function tickDisordine(){
    ────────────────────────────────────────────── */
 function renderLocanda(){
   const fase = getFaseAttuale();
-
-  // Aggiorna label fase nella barra in alto
   const phaseEl = document.getElementById('locanda-fase-label');
   if(phaseEl) phaseEl.textContent = fase.label.toUpperCase();
   updateDrainLabel();
 
-  // ── SONNO ──
-  const ore = gameState.locanda.oreSonno||0;
-  const nrgStart = calcNrgStart();
-  const orePct = Math.min(100, ore/cfg.locSleepIdeal*100);
-  const oreColor = ore>=cfg.locSleepIdeal?'var(--green)':ore>=cfg.locSleepMin?'var(--gold)':'var(--red-bright)';
-  document.getElementById('locanda-sleep-list').innerHTML = `
-  <div class="loc-item">
-    <div class="loc-item-head">
-      <span class="loc-item-icon">🌙</span>
-      <div style="flex:1">
-        <div class="loc-item-name">Ore dormite</div>
-        <div class="loc-item-effect">
-          NRG partenza: <strong style="color:var(--nrg-color);font-family:'Cinzel',serif">${nrgStart}</strong>
-          &nbsp;·&nbsp;
-          <span style="font-size:9px;color:var(--text-dim)">min ${cfg.locSleepMin}h · ideale ${cfg.locSleepIdeal}h</span>
-        </div>
-      </div>
-      <div class="ctrl-row">
-        <div class="ctrl-btn" onclick="locChange('oreSonno',-1)">−</div>
-        <div class="ctrl-val" id="loc-oreSonno">${ore}</div>
-        <div class="ctrl-btn" onclick="locChange('oreSonno',+1)">+</div>
-      </div>
-    </div>
-    <div class="bar-row" style="margin:6px 0 2px">
-      <div class="bar-track" style="height:6px"><div class="bar-fill nrg" style="width:${orePct}%"></div></div>
-      <div class="bar-val" style="color:${oreColor}">${ore}h</div>
-    </div>
-  </div>`;
-
-  // ── LOG RAPIDO FASE ──
-  const faseLabelEl = document.getElementById('fase-quick-label');
-  if(faseLabelEl) faseLabelEl.textContent = fase.label;
+  const ore  = gameState.locanda.oreSonno || 0;
+  const tot  = getTotaliGiornata();
   const fasiData = gameState.locanda.fasi || {};
   const faseCurr = fasiData[fase.id] || {acqua:0,verdura:0,frutta:0,proteine:0,junk:0};
-  const tot = getTotaliGiornata();
-  const targets = getAcquaTargetPerFase();
-  const targetFase = targets.find(t=>t.id===fase.id)?.target || 0;
-  const acquaFaseTot = acquaFinoAFase(fase.id);
-  const totTarget = targets.reduce((s,t)=>s+t.target,0);
-  const acquaPct = Math.min(100, acquaFaseTot / Math.max(1,totTarget) * 100);
-  const acquaOk = acquaFaseTot >= targets.slice(0, getFasi().findIndex(f=>f.id===fase.id)+1).reduce((s,t)=>s+t.target,0) * 0.95;
+  const targets  = getAcquaTargetPerFase();
 
-  const quickItems = [
-    {key:'acqua',    icon:'💧', label:'Acqua',    unit:'bic', val:faseCurr.acqua,
-     info:`${acquaFaseTot.toFixed(0)}/${cfg.acquaTarget} oggi · target fase: ${targetFase.toFixed(1)}`, ok: acquaOk},
-    {key:'verdura',  icon:'🥦', label:'Verdure',  unit:'pz',  val:faseCurr.verdura,
-     info:`tot: ${tot.verdura}/${cfg.verduraIdeal}`, ok: tot.verdura>=cfg.verduraIdeal},
-    {key:'frutta',   icon:'🍎', label:'Frutta',   unit:'pz',  val:faseCurr.frutta,
-     info:`tot: ${tot.frutta}/${cfg.fruttaIdeal}`, ok: tot.frutta>=cfg.fruttaIdeal},
-    {key:'proteine', icon:'🥩', label:'Proteine', unit:'pz',  val:faseCurr.proteine,
-     info:`tot: ${tot.proteine}/${cfg.proteineIdeal}`, ok: tot.proteine>=cfg.proteineIdeal},
-    {key:'junk',     icon:'🍔', label:'Junk',     unit:'pz',  val:faseCurr.junk,
-     info:`tot: ${tot.junk} — meno è meglio`, ok: tot.junk===0},
+  // Calcola acqua cumulativa totale oggi
+  const acquaCumOra = Object.values(fasiData).reduce((s,f)=>s+(f.acqua||0),0);
+
+  // Target acqua dinamico: basato su ore di veglia trascorse
+  // Ore totali di veglia = 24 - oreSonno (appross. 16h)
+  const oreVegliaTotal = Math.max(8, 24 - (ore||7));
+  // Ora sveglia da gameState, default 7:00
+  const sveglia = gameState.oraSveglia || '07:00';
+  const [svH, svM] = sveglia.split(':').map(Number);
+  const now = new Date();
+  const minutiDallaVeglia = Math.max(0, (now.getHours()-svH)*60 + (now.getMinutes()-svM));
+  const oreTrascorse = Math.min(oreVegliaTotal, minutiDallaVeglia/60);
+  // Target proporzionale: se sono trascorse X ore su oreVegliaTotal, il target è X/oreVegliaTotal * acquaTarget
+  const acquaTargetOra = Math.max(0, (oreTrascorse / oreVegliaTotal) * cfg.acquaTarget);
+
+  // ── Soglie colorazione (configurabili) ──
+  function barColor(key, val){
+    const s = cfg.locBarsoglie || {};
+    const T = s[key] || {};
+    if(key==='acqua'){
+      const pct = acquaTargetOra > 0 ? val/acquaTargetOra : val/cfg.acquaTarget;
+      if(pct >= 1.15) return '#4a7aff';          // blu: ben sopra il target di fase
+      if(pct >= 0.95) return 'var(--green)';
+      if(pct >= 0.6)  return 'var(--gold)';
+      return 'var(--red-bright)';
+    }
+    if(key==='junk'){
+      if(val===0) return 'var(--green)';
+      if(val===1) return 'var(--gold)';
+      return 'var(--red-bright)';
+    }
+    // verdura, frutta, proteine: target fisso
+    const ideal = key==='verdura'?cfg.verduraIdeal:key==='frutta'?cfg.fruttaIdeal:cfg.proteineIdeal;
+    if(val >= ideal*1.3) return '#4a7aff';
+    if(val >= ideal)     return 'var(--green)';
+    if(val >= ideal*0.5) return 'var(--gold)';
+    if(val > 0)          return 'var(--red-bright)';
+    return 'var(--surface3)';
+  }
+
+  // ── CTA e effetto per ogni voce ──
+  function ctaInfo(key, val){
+    if(key==='oreSonno'){
+      if(val>=cfg.locSleepIdeal) return {eff:'🌟 Recupero ottimale',cta:'Perfetto!'};
+      if(val>=cfg.locSleepMin)   return {eff:'🌙 Sonno accettabile',cta:'Ok'};
+      return {eff:'⚠ Sonno scarso — NRG ridotta, drain peggiore',cta:'Ok'};
+    }
+    if(key==='acqua'){
+      const pct = acquaTargetOra>0 ? val/acquaTargetOra : 0;
+      if(pct>=1.15) return {eff:'💧 Idratazione ottimale — drain ridotto',cta:'Perfetto!'};
+      if(pct>=0.95) return {eff:'💧 In linea con l\'orario',cta:'Ok'};
+      if(pct>=0.6)  return {eff:'⚠ Leggermente indietro per questa fase',cta:'Bevi!'};
+      return {eff:'🔴 Idratazione insufficiente — drain aumentato',cta:'Bevi!'};
+    }
+    if(key==='verdura'){
+      if(val>=cfg.verduraIdeal*1.3) return {eff:'🥦 Eccellente — bonus HP',cta:'Perfetto!'};
+      if(val>=cfg.verduraIdeal)     return {eff:'🥦 Obiettivo raggiunto',cta:'Ok'};
+      return {eff:`🥦 Ne mancano ${Math.max(0,cfg.verduraIdeal-val)} pz al target`,cta:'Aggiungi!'};
+    }
+    if(key==='frutta'){
+      if(val>=cfg.fruttaIdeal*1.3) return {eff:'🍎 Eccellente — bonus NRG',cta:'Perfetto!'};
+      if(val>=cfg.fruttaIdeal)     return {eff:'🍎 Obiettivo raggiunto',cta:'Ok'};
+      return {eff:`🍎 Ne mancano ${Math.max(0,cfg.fruttaIdeal-val)} pz al target`,cta:'Aggiungi!'};
+    }
+    if(key==='proteine'){
+      if(val>=cfg.proteineIdeal*1.3) return {eff:'🥩 Eccellente — recupero muscolare',cta:'Perfetto!'};
+      if(val>=cfg.proteineIdeal)     return {eff:'🥩 Obiettivo raggiunto',cta:'Ok'};
+      return {eff:`🥩 Ne mancano ${Math.max(0,cfg.proteineIdeal-val)} pz al target`,cta:'Aggiungi!'};
+    }
+    if(key==='junk'){
+      if(val===0) return {eff:'✅ Zero junk — HP e NRG intatti',cta:'Ottimo!'};
+      if(val===1) return {eff:'⚠ 1 junk — debuff lieve HP',cta:'Ok'};
+      return {eff:`🔴 ${val} junk — −${val*cfg.junkHpMalus} HP −${val*cfg.junkNrgMalus} NRG`,cta:'Attenzione!'};
+    }
+    return {eff:'',cta:'Ok'};
+  }
+
+  // ── Barra per voce ──
+  function barPct(key, val){
+    if(key==='oreSonno') return Math.min(100, val/cfg.locSleepIdeal*100);
+    if(key==='acqua')    return acquaTargetOra>0 ? Math.min(130, val/acquaTargetOra*100) : Math.min(100, val/cfg.acquaTarget*100);
+    if(key==='junk')     return Math.min(100, val*25);
+    const ideal = key==='verdura'?cfg.verduraIdeal:key==='frutta'?cfg.fruttaIdeal:cfg.proteineIdeal;
+    return Math.min(100, ideal>0 ? val/ideal*100 : 0);
+  }
+
+  // ── Render lista voci ──
+  const voci = [
+    {key:'oreSonno', icon:'🌙', label:'Sonno',    unit:'h',   val:ore,           ctrl:'loc', step:0.5},
+    {key:'acqua',    icon:'💧', label:'Acqua',    unit:'bic', val:faseCurr.acqua,ctrl:'fase', step:1,
+     subLabel: `${acquaCumOra.toFixed(0)}/${cfg.acquaTarget} bic oggi · target ora: ${acquaTargetOra.toFixed(1)} · sveglia: ${gameState.oraSveglia||'07:00'}`},
+    {key:'verdura',  icon:'🥦', label:'Verdure',  unit:'pz',  val:faseCurr.verdura, ctrl:'fase', step:1,
+     subLabel:`${tot.verdura}/${cfg.verduraIdeal} pz oggi`},
+    {key:'frutta',   icon:'🍎', label:'Frutta',   unit:'pz',  val:faseCurr.frutta,  ctrl:'fase', step:1,
+     subLabel:`${tot.frutta}/${cfg.fruttaIdeal} pz oggi`},
+    {key:'proteine', icon:'🥩', label:'Proteine', unit:'pz',  val:faseCurr.proteine,ctrl:'fase', step:1,
+     subLabel:`${tot.proteine}/${cfg.proteineIdeal} pz oggi`},
+    {key:'junk',     icon:'🍔', label:'Junk',     unit:'pz',  val:faseCurr.junk,    ctrl:'fase', step:1,
+     subLabel:`${tot.junk} totale oggi — meno è meglio`},
   ];
 
-  let quickHtml = `<div style="background:var(--surface);border:1px solid var(--border);border-radius:2px;overflow:hidden;">`;
-  quickItems.forEach((it,i)=>{
-    const brd = i < quickItems.length-1 ? 'border-bottom:1px solid var(--border);' : '';
-    const statusCol = it.ok ? 'var(--green)' : it.key==='junk' ? 'var(--red-bright)' : 'var(--gold)';
-    quickHtml += `
-    <div style="${brd}padding:9px 14px;display:flex;align-items:center;gap:10px;">
-      <span style="font-size:18px;width:24px;text-align:center">${it.icon}</span>
-      <div style="flex:1">
-        <div style="font-family:'Cinzel',serif;font-size:11px;color:var(--text)">${it.label}</div>
-        <div style="font-size:9px;color:${statusCol};margin-top:2px">${it.info}</div>
+  // Chip valore (a destra)
+  function chipVal(key, val){
+    if(key==='oreSonno') return `${val}h`;
+    if(key==='junk') return val===0 ? '✓' : `${val}`;
+    return `${val}`;
+  }
+
+  let itemsHtml = '';
+  voci.forEach(v => {
+    const col = barColor(v.key, v.key==='acqua'?acquaCumOra:v.key==='oreSonno'?ore:tot[v.key==='verdura'?'verdura':v.key==='frutta'?'frutta':v.key==='proteine'?'proteine':v.key==='junk'?'junk':v.key]||v.val);
+    const pct  = barPct(v.key, v.key==='acqua'?acquaCumOra:v.key==='oreSonno'?ore:tot[v.key]||v.val);
+    const info = ctaInfo(v.key, v.key==='acqua'?acquaCumOra:v.key==='oreSonno'?ore:tot[v.key]||v.val);
+    const chip = chipVal(v.key, v.key==='oreSonno'?ore:v.key==='acqua'?acquaCumOra:tot[v.key]||v.val);
+    const ctrlMinus = v.ctrl==='loc' ? `locChange('${v.key}',-${v.step})` : `faseLoc('${fase.id}','${v.key}',-1)`;
+    const ctrlPlus  = v.ctrl==='loc' ? `locChange('${v.key}',+${v.step})` : `faseLoc('${fase.id}','${v.key}',+1)`;
+    const inputId   = v.ctrl==='loc' ? `loc-${v.key}` : `fase-${fase.id}-${v.key}`;
+
+    itemsHtml += `
+    <div style="border-bottom:1px solid var(--border)">
+      <!-- Riga principale: icona + barra + chip + ctrl -->
+      <div style="display:flex;align-items:center;gap:10px;padding:10px 14px;cursor:pointer"
+        onclick="toggleLocVoce('${v.key}')">
+        <span style="font-size:18px;flex-shrink:0;width:22px;text-align:center">${v.icon}</span>
+        <div style="flex:1;min-width:0">
+          <div style="font-family:'Cinzel',serif;font-size:10px;color:var(--text)">${v.label}</div>
+          <!-- BARRA DINAMICA -->
+          <div style="height:5px;background:var(--surface3);border-radius:2px;overflow:hidden;margin-top:4px;position:relative">
+            <div style="position:absolute;left:0;top:0;height:100%;width:${Math.min(100,pct).toFixed(1)}%;
+              background:${col};border-radius:2px;transition:width 0.4s"></div>
+            ${v.key==='acqua'&&pct>100?`<div style="position:absolute;left:0;top:0;height:100%;width:100%;background:rgba(74,122,255,0.3);border-radius:2px"></div>`:''}
+          </div>
+        </div>
+        <!-- Chip -->
+        <div style="font-family:'Cinzel',serif;font-size:13px;color:${col};flex-shrink:0;min-width:28px;text-align:center">${chip}</div>
+        <!-- Ctrl (no duplicate value) -->
+        <div style="display:flex;gap:4px;align-items:center" onclick="event.stopPropagation()">
+          <div class="ctrl-btn" onclick="${ctrlMinus}" style="width:32px;height:32px;display:flex;align-items:center;justify-content:center">−</div>
+          <div class="ctrl-btn" onclick="${ctrlPlus}" style="width:32px;height:32px;display:flex;align-items:center;justify-content:center">+</div>
+        </div>
       </div>
-      <div class="ctrl-row">
-        <div class="ctrl-btn" onclick="faseLoc('${fase.id}','${it.key}',-1)">−</div>
-        <div class="ctrl-val" id="fase-${fase.id}-${it.key}">${it.val}</div>
-        <div class="ctrl-btn" onclick="faseLoc('${fase.id}','${it.key}',+1)">+</div>
+      <!-- Espansione: effetto + CTA -->
+      <div id="loc-expand-${v.key}" style="display:none;padding:8px 14px 10px 50px;border-top:1px solid rgba(42,42,64,0.5);background:var(--surface2)">
+        <div style="font-size:10px;color:var(--text-dim);font-style:italic;margin-bottom:6px">${v.subLabel||''}</div>
+        <div style="font-size:11px;color:var(--text);margin-bottom:8px">${info.eff}</div>
+        <button onclick="toggleLocVoce('${v.key}')"
+          style="padding:5px 14px;background:transparent;border:1px solid ${col};border-radius:1px;
+          font-family:'Cinzel',serif;font-size:9px;letter-spacing:1px;color:${col};cursor:pointer;text-transform:uppercase">
+          ${info.cta}
+        </button>
       </div>
     </div>`;
   });
-  quickHtml += `</div>`;
-  document.getElementById('locanda-quick-log').innerHTML = quickHtml;
 
-  // ── RIEPILOGO (barre giornata + fasi acqua) ──
-  renderFoodSummary(fase, targets, tot);
+  document.getElementById('locanda-sleep-list').innerHTML = `
+    <div style="background:var(--surface);border:1px solid var(--border);border-radius:2px;overflow:hidden">
+      ${itemsHtml}
+    </div>`;
 
-  // ── ORDINE ──
+  // Mantieni compatibilità con gli altri render
+  document.getElementById('locanda-quick-log').innerHTML  = '';
+  document.getElementById('locanda-food-summary').innerHTML = '';
+
   renderLocandaOrdine();
-  // ── STORICO NRG ──
   renderNrgHistory();
-  // ── MORNING DOT ──
   updateMorningDot();
-
-  // ── EFFETTI ──
-  updateLocandaPreview();
 }
 
-function renderFoodSummary(faseAtt, targets, tot){
-  const fasi = getFasi();
-  const fasiData = gameState.locanda.fasi || {};
-
-  // Riga acqua: barre per fase
-  let acquaFasi = '';
-  let cumAcqua = 0;
-  fasi.forEach((f,i) => {
-    const v = fasiData[f.id]?.acqua||0;
-    cumAcqua += v;
-    const tgt = targets[i]?.target||0;
-    const ok = cumAcqua >= targets.slice(0,i+1).reduce((s,t)=>s+t.target,0)*0.9;
-    const isCurr = f.id === faseAtt.id;
-    acquaFasi += `<div title="${f.label}: ${v} bic" style="flex:1;height:20px;background:${ok?'rgba(74,154,90,0.3)':isCurr?'rgba(240,160,48,0.25)':'var(--surface3)'};border:1px solid ${ok?'var(--green-dim)':isCurr?'var(--gold-dim)':'var(--border)'};border-radius:2px;display:flex;align-items:center;justify-content:center;font-family:'Cinzel',serif;font-size:8px;color:${ok?'var(--green)':isCurr?'var(--gold)':'var(--text-dim)'};">${v||'·'}</div>`;
+let _locExpandedKey = null;
+function toggleLocVoce(key){
+  _locExpandedKey = _locExpandedKey === key ? null : key;
+  ['oreSonno','acqua','verdura','frutta','proteine','junk'].forEach(k => {
+    const el = document.getElementById('loc-expand-'+k);
+    if(el) el.style.display = _locExpandedKey === k ? 'block' : 'none';
   });
-
-  const foodRows = [
-    {icon:'💧',label:'Acqua',    val:tot.acqua,   ideal:cfg.acquaTarget, suffix:'bic', type:'acqua'},
-    {icon:'🥦',label:'Verdure',  val:tot.verdura, ideal:cfg.verduraIdeal, suffix:'pz', type:''},
-    {icon:'🍎',label:'Frutta',   val:tot.frutta,  ideal:cfg.fruttaIdeal, suffix:'pz', type:''},
-    {icon:'🥩',label:'Proteine', val:tot.proteine,ideal:cfg.proteineIdeal,suffix:'pz', type:''},
-    {icon:'🍔',label:'Junk',     val:tot.junk,    ideal:0, suffix:'pz', type:'junk'},
-  ];
-
-  let html = '';
-  foodRows.forEach(r => {
-    const isJunk = r.type==='junk';
-    const pct = isJunk ? Math.min(100,r.val*25) : r.ideal > 0 ? Math.min(100,r.val/r.ideal*100) : 0;
-    const col = isJunk ? (r.val>0?'var(--red-bright)':'var(--green)') : (r.val>=r.ideal?'var(--green)':r.val>0?'var(--gold)':'var(--red-bright)');
-    const status = isJunk ? (r.val>0?`${r.val} ✗`:'✓') : `${r.val}/${r.ideal} ${r.suffix}`;
-    html += `
-    <div style="display:flex;align-items:center;gap:8px;padding:5px 0;border-bottom:1px solid var(--border)">
-      <span style="font-size:14px;width:20px;text-align:center">${r.icon}</span>
-      <span style="font-family:'Cinzel',serif;font-size:9px;color:var(--text-dim);width:54px">${r.label}</span>
-      ${r.type==='acqua' ? `<div style="flex:1;display:flex;gap:2px;">${acquaFasi}</div>` :
-        `<div style="flex:1;height:6px;background:var(--surface3);border-radius:1px;overflow:hidden"><div style="height:100%;width:${pct}%;background:${isJunk?'var(--red)':'var(--green)'};border-radius:1px;transition:width 0.4s"></div></div>`}
-      <span style="font-family:'Cinzel',serif;font-size:9px;color:${col};min-width:40px;text-align:right">${status}</span>
-    </div>`;
-  });
-
-  // Drain breakdown
-  const breakdown = getDrainBreakdown();
-  const drainTot = calcDrainTotale();
-  const drainCol = drainTot <= cfg.nrgDrainPerMin*0.9 ? 'var(--green)' : drainTot >= cfg.nrgDrainPerMin*1.3 ? 'var(--red-bright)' : 'var(--gold)';
-  let drainHtml = `<div style="margin-top:8px;background:var(--surface2);border:1px solid var(--border);border-radius:2px;overflow:hidden">
-    <div style="padding:5px 10px;border-bottom:1px solid var(--border);font-family:'Cinzel',serif;font-size:7px;letter-spacing:2px;color:var(--text-dim);display:flex;justify-content:space-between">
-      <span>DRAIN NRG/MIN</span>
-      <span style="color:${drainCol};font-size:10px">${drainTot.toFixed(3)}</span>
-    </div>`;
-  breakdown.forEach(b => {
-    const isBase = b.label === 'Base';
-    const col = isBase ? 'var(--text-dim)' : b.val < 0 ? 'var(--green)' : b.val > 0 ? 'var(--red-bright)' : 'var(--text-dim)';
-    const sign = isBase ? '' : b.val > 0 ? '+' : '';
-    const opacity = b.val === 0 ? '0.4' : '1';
-    drainHtml += `<div style="padding:4px 10px;display:flex;align-items:center;gap:6px;opacity:${opacity};border-bottom:1px solid rgba(42,42,64,0.5)">
-      <span style="font-size:11px;width:16px">${b.icon}</span>
-      <span style="font-family:'Cinzel',serif;font-size:8px;color:var(--text-dim);flex:1;letter-spacing:1px">${b.label.toUpperCase()}</span>
-      <span style="font-family:'Cinzel',serif;font-size:9px;color:${col}">${sign}${b.val.toFixed(3)}</span>
-    </div>`;
-  });
-  drainHtml += `</div>`;
-
-  document.getElementById('locanda-food-summary').innerHTML =
-    `<div style="background:var(--surface);border:1px solid var(--border);border-radius:2px;padding:10px 14px;">${html}${drainHtml}</div>`;
 }
 
 function renderLocandaOrdine(){
@@ -4681,27 +5858,46 @@ function saveLocanda(){
 function renderIgiene(){
   const now = Date.now();
   const ONE_DAY = 86400000;
-  const igiene = [
-    {key:'barba', icon:'🧔', nome:'Farsi la Barba', desc:`+${cfg.locBeardHp} HP · ogni 2 giorni`, cooldown: ONE_DAY*2, hpVal: cfg.locBeardHp, gem:0},
-    {key:'rasatura', icon:'🪒', nome:'Rasatura completa', desc:'+5 HP · ogni 2 settimane', cooldown: ONE_DAY*14, hpVal:5, gem:0},
-    {key:'capelli', icon:'💇', nome:'Taglio Capelli', desc:`+${cfg.locHaircutHp} HP · max 1/settimana · costa ${cfg.haircutGems} gemme`, cooldown: ONE_DAY*7, hpVal: cfg.locHaircutHp, gem: cfg.haircutGems},
-    {key:'lavatrice', icon:'🫧', nome:'Fare la Lavatrice', desc:'+3 HP · senza limiti', cooldown: ONE_DAY, hpVal:3, gem:0},
+  const conf = cfg.igieneConf || [
+    {key:'barba',     icon:'🧔', nome:'Farsi la Barba',    cadenzaGg:2,  limitePerPeriodo:0, periodoGg:7},
+    {key:'rasatura',  icon:'🪒', nome:'Rasatura Completa', cadenzaGg:14, limitePerPeriodo:1, periodoGg:14},
+    {key:'capelli',   icon:'💇', nome:'Taglio Capelli',    cadenzaGg:30, limitePerPeriodo:1, periodoGg:30},
+    {key:'lavatrice', icon:'🫧', nome:'Fare la Lavatrice', cadenzaGg:3,  limitePerPeriodo:0, periodoGg:7},
   ];
   let html = '';
-  igiene.forEach(ig=>{
+  conf.forEach(ig => {
     const last = gameState.igiene[ig.key];
     const elapsed = last ? now - last : Infinity;
-    const available = elapsed >= ig.cooldown;
+    const cooldownMs = ig.cadenzaGg * ONE_DAY;
+    const cooldownOk = elapsed >= cooldownMs;
+
+    // Controllo limite periodo
+    let limiteOk = true;
+    let occorrenzePeriodo = 0;
+    if(ig.limitePerPeriodo > 0){
+      const periodoMs = ig.periodoGg * ONE_DAY;
+      const storico = (gameState.igieneStorico || {})[ig.key] || [];
+      occorrenzePeriodo = storico.filter(t => now - t < periodoMs).length;
+      limiteOk = occorrenzePeriodo < ig.limitePerPeriodo;
+    }
+
+    const available = cooldownOk && limiteOk;
+    const hpVal = ig.key==='capelli' ? cfg.locHaircutHp : ig.key==='barba' ? cfg.locBeardHp : 5;
+
+    let metaLabel = `ogni ${ig.cadenzaGg}gg`;
+    if(ig.limitePerPeriodo > 0) metaLabel += ` · max ${ig.limitePerPeriodo}/${ig.periodoGg}gg`;
+
     html += `
     <div class="igiene-item">
       <span style="font-size:22px">${ig.icon}</span>
       <div class="ig-info">
         <div class="ig-name">${ig.nome}</div>
-        <div class="ig-meta">${ig.desc}</div>
-        ${!available ? `<div class="ig-meta" style="color:var(--red-bright)">Disponibile tra ${formatCooldown(ig.cooldown - elapsed)}</div>` : ''}
+        <div class="ig-meta">${metaLabel}</div>
+        ${!cooldownOk ? `<div class="ig-meta" style="color:var(--red-bright)">Disponibile tra ${formatCooldown(cooldownMs - elapsed)}</div>` : ''}
+        ${!limiteOk ? `<div class="ig-meta" style="color:var(--red-bright)">Limite raggiunto (${occorrenzePeriodo}/${ig.limitePerPeriodo} nel periodo)</div>` : ''}
       </div>
-      <button class="ig-btn" ${!available?'disabled':''} onclick="useIgiene('${ig.key}',${ig.hpVal},${ig.gem})">
-        ${ig.gem>0 ? `◆${ig.gem} ` : ''}+${ig.hpVal} HP
+      <button class="ig-btn" ${!available?'disabled':''} onclick="useIgiene('${ig.key}',${hpVal},0)">
+        +${hpVal} HP
       </button>
     </div>`;
   });
@@ -4720,6 +5916,10 @@ function useIgiene(key, hpVal, gemCost){
   if(gemCost > 0) cfg.gems -= gemCost;
   cfg.hp = Math.min(cfg.hpMax, cfg.hp + hpVal);
   gameState.igiene[key] = Date.now();
+  // Registra nello storico per il controllo limite
+  if(!gameState.igieneStorico) gameState.igieneStorico = {};
+  if(!gameState.igieneStorico[key]) gameState.igieneStorico[key] = [];
+  gameState.igieneStorico[key].push(Date.now());
   toast(`+${hpVal} HP`);
   updateHUD();
   renderIgiene();
@@ -4992,6 +6192,7 @@ function renderStatiRow(){
 
 function renderStatiList(){
   const list = document.getElementById('stati-list');
+  if(!list) return;
   const stati = gameState.statiAttivi||[];
   if(!stati.length){list.innerHTML='<div class="dev-note">Nessun cambiamento di stato attivo.</div>';return;}
   let html = '';
@@ -5160,8 +6361,10 @@ function openDevPanel(){
     'dev-nrg-s-verdura':cfg.nrgSogliaVerdura,'dev-nrg-s-frutta':cfg.nrgSogliaFrutta,
     'dev-nrg-s-proteine':cfg.nrgSogliaProteine,
     'dev-evo-max':cfg.evoMax,'dev-formula-max':cfg.formulaMax,
-    'dev-fm-doccia-sonno':(cfg.formuleCondizioni||{}).doccia_fredda?.sonnoMax||6,
-    'dev-fm-cucinare-verd':(cfg.formuleCondizioni||{}).cucinare?.verdureMin||1,
+    'dev-fm-doccia-sonno': (cfg.formuleCondizioni||{}).doccia_fredda?.sonnoMax||6,
+    'dev-fm-stretch-nrg':  (cfg.formuleCondizioni||{}).stretching?.nrgPctMax||60,
+    'dev-fm-lettura-hp':   (cfg.formuleCondizioni||{}).lettura?.hpPctMax||70,
+    'dev-fm-cucinare-verd':(cfg.formuleCondizioni||{}).cucinare?.verdureMax||1,
     'dev-habit-curse-days':cfg.habitCurseDays,'dev-habit-heal-days':cfg.habitHealDays,
     'dev-anfratto-level':cfg.anfrattoLevel,'dev-anfratto-loot-mult':cfg.anfrattoLootMult,
     'dev-gem-value':cfg.gemValue,
@@ -5232,11 +6435,11 @@ function saveDevPanel(){
   cfg.nrgSogliaFrutta=readF('dev-nrg-s-frutta'); cfg.nrgSogliaProteine=readF('dev-nrg-s-proteine');
   cfg.evoMax=readF('dev-evo-max'); cfg.formulaMax=readF('dev-formula-max');
   if(!cfg.formuleCondizioni) cfg.formuleCondizioni={};
-  cfg.formuleCondizioni.doccia_fredda = {sonnoMax: readF('dev-fm-doccia-sonno')||6};
-  cfg.formuleCondizioni.stretching    = {catAperto: document.getElementById('dev-fm-stretch-cat')?.value||'corpo'};
-  cfg.formuleCondizioni.lettura       = {catOggi:   document.getElementById('dev-fm-lettura-cat')?.value||'mente'};
+  cfg.formuleCondizioni.doccia_fredda = {sonnoMax:  readF('dev-fm-doccia-sonno')||6};
+  cfg.formuleCondizioni.stretching    = {nrgPctMax: readF('dev-fm-stretch-nrg')||60};
+  cfg.formuleCondizioni.lettura       = {hpPctMax:  readF('dev-fm-lettura-hp')||70};
   cfg.formuleCondizioni.bici          = {catOggi:   document.getElementById('dev-fm-bici-cat')?.value||'portafoglio'};
-  cfg.formuleCondizioni.cucinare      = {verdureMin: readF('dev-fm-cucinare-verd')||1};
+  cfg.formuleCondizioni.cucinare      = {verdureMax: readF('dev-fm-cucinare-verd')||1};
   cfg.habitCurseDays=readF('dev-habit-curse-days'); cfg.habitHealDays=readF('dev-habit-heal-days');
   cfg.anfrattoLevel=readF('dev-anfratto-level'); cfg.anfrattoLootMult=+document.getElementById('dev-anfratto-loot-mult')?.value||2.5;
   cfg.gemValue=readF('dev-gem-value');
@@ -5336,11 +6539,18 @@ function renderAll(){
   renderStatiRow();
   renderEmporio();
   renderGoldLog();
+  updateGlobalStatusBar();
   renderHPInfluences();
   renderNRGFactors();
   // update badge counts
   const _bv = document.getElementById('badge-varchi'); if(_bv) _bv.textContent = gameState.varchi.filter(v=>!v.done).length;
   const _bn = document.getElementById('badge-nemici'); if(_bn) _bn.textContent = (gameState.mostri.filter(m=>!m.done).length + (gameState.eventi||[]).filter(e=>!e.completato&&['sentinella','avanguardia','boss'].includes(e.tipo)).length);
+  // Emporio: aggiorna saldo
+  if(document.getElementById('emporio-pubblico')?.closest('.itab-content.active')) renderEmporio();
+  // Se il Diario è la view attiva, re-renderizza il tab corrente
+  if(document.getElementById('view-diario')?.classList.contains('active')){
+    switchDiarioTab(_diarioTab);
+  }
 }
 
 /* ════════════════════════════════════════════════
@@ -5762,7 +6972,13 @@ function resetGiornoLocanda(){
 let _morningOre = 7.0;
 
 function openMorningSheet(){
-  _morningOre = 7.0;
+  _morningOre = gameState.locanda?.oreSonno || 7.0;
+  // Pre-fill ora sveglia
+  const now = new Date();
+  const hh = String(now.getHours()).padStart(2,'0');
+  const mm = String(now.getMinutes()).padStart(2,'0');
+  const oraEl = document.getElementById('morning-ora-sveglia');
+  if(oraEl) oraEl.value = gameState.oraSveglia || `${hh}:${mm}`;
   document.getElementById('morning-ore-val').textContent = _morningOre.toFixed(1);
   updateMorningPreview();
   // Mostra avviso dati ieri
@@ -5818,6 +7034,11 @@ function confirmMorning(){
   // 4. Applica NRG
   cfg.nrg = nrgBase;
   gameState.nrgBaseDiOggi = nrgBase;
+  // 4b. Salva ora di sveglia per calcolo dinamico acqua
+  const morningOraEl = document.getElementById('morning-ora-sveglia');
+  if(morningOraEl && morningOraEl.value) gameState.oraSveglia = morningOraEl.value;
+  // 4c. Reset nanna state
+  gameState.nannaOn = false;
   // 5. Aggiorna giorno corrente
   gameState.giornoCorrente = new Date().toISOString().slice(0,10);
   // 6. Reset locanda per il nuovo giorno (keep ordine e igiene)
@@ -5830,6 +7051,7 @@ function confirmMorning(){
   startNrgTick();
   aggiornaCuraBarre();
   saveAll();
+  updateNannaBtn();
   toast(`⚡ Energia di oggi: ${nrgBase} — Buongiorno!`, 3000);
 }
 
@@ -5888,19 +7110,32 @@ const DOMINI_PER_CAT = {
 let _diarioTab = 'consapevolezza';
 let _abitForm = null; // state for add-abitudine form
 
+/* openDiario — ora Diario è una view nella navbar, non un overlay
+   Viene chiamata ancora da vecchi bottoni, facciamo switchView */
 function openDiario(){
-  const ov=document.getElementById('diario-overlay');
-  const pn=document.getElementById('diario-panel');
-  const bg=document.getElementById('diario-bg');
-  ov.style.pointerEvents='all';
-  bg.style.background='rgba(0,0,0,0.75)';
-  pn.style.transform='translateY(0)';
+  const navBtn = document.querySelector('.nav-btn[onclick*="diario"]');
+  if(navBtn) navBtn.click();
+  else switchView('diario', document.querySelector('.nav-bar .nav-btn'));
   switchDiarioTab(_diarioTab);
 }
 function closeDiario(){
-  const ov=document.getElementById('diario-overlay');
-  const pn=document.getElementById('diario-panel');
-  const bg=document.getElementById('diario-bg');
+  // no-op — Diario è una view, non ha "close"
+}
+
+/* Avatar overlay */
+function openAvatarOverlay(){
+  const ov=document.getElementById('avatar-overlay');
+  const pn=document.getElementById('avatar-overlay-panel');
+  const bg=document.getElementById('avatar-overlay-bg');
+  ov.style.pointerEvents='all';
+  bg.style.background='rgba(0,0,0,0.75)';
+  pn.style.transform='translateY(0)';
+  renderPillars();
+}
+function closeAvatarOverlay(){
+  const ov=document.getElementById('avatar-overlay');
+  const pn=document.getElementById('avatar-overlay-panel');
+  const bg=document.getElementById('avatar-overlay-bg');
   pn.style.transform='translateY(100%)';
   bg.style.background='rgba(0,0,0,0)';
   setTimeout(()=>{ ov.style.pointerEvents='none'; },350);
@@ -6236,6 +7471,7 @@ function toggleAbitudineOggi(id){
   saveAll();
   renderConsapevolezza();
   renderStatiRow();
+  updateGlobalStatusBar();
 }
 
 function openAbitForm(){
@@ -6379,12 +7615,495 @@ function renderTitoli(){
   ct.innerHTML=html;
 }
 
+/* ════════════════════════════════════════════════
+   EMPORIO — pubblico + pannello privato
+════════════════════════════════════════════════ */
+
+const REQUISITI_OPTIONS = [
+  {id:'Titoli',  icon:'🏅', desc:'Richiede achievement specifici'},
+  {id:'Livelli', icon:'⭐', desc:'Richiede classe pilastro minima'},
+  {id:'Taglie',  icon:'🎯', desc:'Richiede boss/sentinelle completate'},
+];
+
+let _emporioPrivato = false;
+let _empDragSrc = null;
+
+/* switchITab side effect: renderizza emporio quando si apre il tab */
+/* (già wired nel main switchITab se lo aggiungiamo qui sotto) */
+
+function renderEmporio(){
+  const el = document.getElementById('emporio-pubblico');
+  if(!el) return;
+  const oggetti = [...(gameState.emporioOggetti||[])].sort((a,b)=>(a.priorita||0)-(b.priorita||0));
+
+  let html = '';
+
+  // Header con saldo + bottone privato
+  html += `
+  <div style="display:flex;align-items:center;justify-content:space-between;padding:10px 14px 8px;border-bottom:1px solid var(--border);flex-shrink:0">
+    <div>
+      <div style="font-family:'Cinzel',serif;font-size:8px;letter-spacing:2px;color:var(--text-dim);text-transform:uppercase">Saldo</div>
+      <div style="font-family:'Cinzel',serif;font-size:22px;color:var(--gold)">${cfg.gold} ◈</div>
+    </div>
+    <button onclick="openEmporioPrivato()"
+      style="padding:6px 12px;background:rgba(107,63,160,0.08);border:1px solid #2a1a3a;border-radius:2px;
+      font-family:'Cinzel',serif;font-size:8px;letter-spacing:1px;color:var(--purple-light);cursor:pointer;text-transform:uppercase">
+      🔑 Privato
+    </button>
+  </div>`;
+
+  if(!oggetti.length){
+    html += `<div style="padding:24px;text-align:center;font-size:10px;color:var(--text-dim);font-style:italic">
+      L'emporio è vuoto. Accedi al pannello privato per aggiungere oggetti.
+    </div>`;
+    el.innerHTML = html;
+    return;
+  }
+
+  html += `<div style="padding:8px 14px">`;
+  oggetti.forEach(o => {
+    const canBuy = cfg.gold >= o.prezzo;
+    const reqHtml = (o.requisiti||[]).map(r => {
+      const rm = REQUISITI_OPTIONS.find(x=>x.id===r);
+      return rm ? `<span class="pill-badge" style="font-size:7px;background:rgba(201,168,76,0.08);border-color:var(--gold-dim);color:var(--gold)">${rm.icon} ${rm.id}</span>` : '';
+    }).join('');
+
+    if(o.acquistato) return; // skip purchased — shown below
+    html += `
+    <div style="background:var(--surface);border:1px solid var(--border);border-radius:2px;
+      padding:12px 14px;margin-bottom:6px;display:flex;align-items:flex-start;gap:10px;
+      opacity:${canBuy?1:0.55};transition:all 0.15s"
+      onmouseover="this.style.opacity='1'"
+      onmouseout="this.style.opacity='${canBuy?1:0.55}'">
+      <div style="flex:1;min-width:0">
+        <div style="font-family:'Cinzel',serif;font-size:13px;color:var(--text)">${o.nome}</div>
+        ${o.desc?`<div style="font-size:10px;color:var(--text-dim);font-style:italic;margin-top:2px">${o.desc}</div>`:''}
+        ${o.effetti?`<div style="font-size:10px;color:var(--zen);margin-top:3px">✨ ${o.effetti}</div>`:''}
+        ${reqHtml?`<div style="display:flex;gap:4px;flex-wrap:wrap;margin-top:5px">${reqHtml}</div>`:''}
+      </div>
+      <div style="display:flex;flex-direction:column;align-items:flex-end;gap:6px;flex-shrink:0">
+        <div style="font-family:'Cinzel',serif;font-size:16px;color:${canBuy?'var(--gold)':'var(--text-dim)'}">
+          ${o.prezzo} ◈
+        </div>
+        ${canBuy?`<button onclick="acquistaOggetto(${o.id})"
+          style="padding:5px 12px;background:rgba(201,168,76,0.1);
+          border:1px solid var(--gold-dim);border-radius:1px;
+          font-family:'Cinzel',serif;font-size:8px;letter-spacing:1px;
+          color:var(--gold);cursor:pointer;text-transform:uppercase">
+          ◈ Acquista
+        </button>`:''}
+      </div>
+    </div>`;
+  });
+  // Già acquistati
+  const acquistati = oggetti.filter(o => o.acquistato);
+  if(acquistati.length){
+    html += `<div style="display:flex;align-items:center;gap:8px;margin:10px 0 8px">
+      <div style="font-family:'Cinzel',serif;font-size:7px;letter-spacing:2px;color:var(--green);text-transform:uppercase">✓ Già Acquistati</div>
+      <div style="flex:1;height:1px;background:var(--green-dim)"></div>
+    </div>`;
+    acquistati.forEach(o => {
+      const dStr = o.dataAcquisto ? new Date(o.dataAcquisto).toLocaleDateString('it-IT',{day:'numeric',month:'short',year:'numeric'}) : '—';
+      html += `<div style="background:rgba(74,154,90,0.05);border:1px solid var(--green-dim);border-radius:2px;padding:10px 14px;margin-bottom:5px;opacity:0.7">
+        <div style="display:flex;align-items:center;gap:10px">
+          <div style="flex:1">
+            <div style="font-family:'Cinzel',serif;font-size:12px;color:var(--green)">✓ ${o.nome}</div>
+            <div style="font-size:9px;color:var(--text-dim);margin-top:2px">Acquistato: ${dStr} · ${o.prezzoAcquisto||o.prezzo} ◈</div>
+          </div>
+        </div>
+      </div>`;
+    });
+  }
+
+  html += `</div>`;
+  el.innerHTML = html;
+}
+
+function acquistaOggetto(id){
+  const o = (gameState.emporioOggetti||[]).find(x=>x.id===id);
+  if(!o) return;
+  if(cfg.gold < o.prezzo){ toast('Monete insufficienti!'); return; }
+  cfg.gold -= o.prezzo;
+  o.acquistato = true;
+  o.dataAcquisto = new Date().toISOString();
+  o.prezzoAcquisto = o.prezzo;
+  gameState.goldLog.unshift({desc:`Acquistato: ${o.nome}`, val:-o.prezzo, time:'ora'});
+  saveAll(); updateHUD(); renderEmporio(); renderAveri();
+  toast(`✓ "${o.nome}" acquistato!`);
+}
+
+/* ── Accesso privato ── */
+function openEmporioPrivato(){
+  const existing = document.getElementById('emp-privato-modal');
+  if(existing) existing.remove();
+
+  const modal = document.createElement('div');
+  modal.id = 'emp-privato-modal';
+  modal.style.cssText = 'position:fixed;inset:0;z-index:220;display:flex;align-items:center;justify-content:center;background:rgba(0,0,0,0.8)';
+  modal.innerHTML = `
+    <div style="width:90%;max-width:360px;background:var(--bg);border:1px solid #2a1a3a;border-radius:2px;padding:24px">
+      <div style="font-family:'Cinzel',serif;font-size:14px;color:var(--purple-light);margin-bottom:4px">🔑 Accesso Privato</div>
+      <div style="font-size:10px;color:var(--text-dim);margin-bottom:14px">Inserisci la password per accedere al pannello di gestione</div>
+      <input type="password" id="emp-pwd-input" class="form-inp" placeholder="Password..."
+        onkeydown="if(event.key==='Enter') checkEmporioPassword()">
+      <div id="emp-pwd-err" style="font-size:9px;color:var(--red-bright);margin-top:4px;display:none">Password errata</div>
+      <div style="display:flex;gap:8px;margin-top:12px">
+        <button onclick="document.getElementById('emp-privato-modal').remove()"
+          class="form-btn no" style="flex:1;padding:9px">Annulla</button>
+        <button onclick="checkEmporioPassword()"
+          class="form-btn ok" style="flex:1;padding:9px">Entra</button>
+      </div>
+    </div>`;
+  document.body.appendChild(modal);
+  setTimeout(()=>document.getElementById('emp-pwd-input')?.focus(), 100);
+}
+
+function checkEmporioPassword(){
+  const pwd = document.getElementById('emp-pwd-input')?.value;
+  const correct = cfg.emporioPassword || '1234';
+  if(pwd === correct){
+    document.getElementById('emp-privato-modal')?.remove();
+    openEmporioEditor();
+  } else {
+    const err = document.getElementById('emp-pwd-err');
+    if(err){ err.style.display='block'; }
+    const inp = document.getElementById('emp-pwd-input');
+    if(inp){ inp.value=''; inp.focus(); }
+  }
+}
+
+/* ── Pannello privato: gestione oggetti ── */
+let _empEditId = null;
+let _empDragSrcId = null;
+
+function openEmporioEditor(){
+  const existing = document.getElementById('emp-editor-overlay');
+  if(existing) existing.remove();
+
+  const ov = document.createElement('div');
+  ov.id = 'emp-editor-overlay';
+  ov.style.cssText = 'position:fixed;inset:0;z-index:220;display:flex;flex-direction:column;justify-content:flex-end;align-items:center';
+  ov.innerHTML = `
+    <div onclick="this.parentElement.remove()" style="position:absolute;inset:0;background:rgba(0,0,0,0.75)"></div>
+    <div style="position:relative;z-index:1;width:100%;max-width:480px;background:var(--bg);
+      border-top:1px solid #2a1a3a;border-left:1px solid var(--border);border-right:1px solid var(--border);
+      border-radius:2px 2px 0 0;max-height:calc(92vh - 56px);overflow-y:auto">
+      <div style="padding:14px 18px 0;flex-shrink:0">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px">
+          <div style="font-family:'Cinzel',serif;font-size:14px;color:var(--purple-light)">🔑 Pannello Privato</div>
+          <button onclick="document.getElementById('emp-editor-overlay').remove()"
+            style="background:none;border:none;color:var(--text-dim);font-size:14px;cursor:pointer">✕</button>
+        </div>
+      </div>
+      <div id="emp-editor-content" style="padding:0 18px 40px"></div>
+    </div>`;
+  document.body.appendChild(ov);
+  renderEmporioEditor();
+}
+
+function renderEmporioEditor(){
+  const el = document.getElementById('emp-editor-content');
+  if(!el) return;
+  const oggetti = [...(gameState.emporioOggetti||[])].sort((a,b)=>(a.priorita||0)-(b.priorita||0));
+
+  if(_empEditId !== null){
+    const o = _empEditId === 'new' ? null : oggetti.find(x=>x.id===_empEditId);
+    el.innerHTML = renderEmporioForm(o);
+    return;
+  }
+
+  let html = `<div style="font-size:9px;color:var(--text-dim);font-style:italic;margin-bottom:10px">Trascina per riordinare. Clicca per modificare.</div>`;
+
+  html += `<div id="emp-drag-list" style="display:flex;flex-direction:column;gap:5px;margin-bottom:10px">`;
+  oggetti.forEach((o,i) => {
+    const reqHtml = (o.requisiti||[]).map(r=>{
+      const rm = REQUISITI_OPTIONS.find(x=>x.id===r);
+      return rm?`${rm.icon} ${rm.id}`:'';
+    }).join(' · ');
+    html += `
+    <div id="emp-item-${o.id}"
+      draggable="true"
+      ondragstart="empDragStart(event,${o.id})"
+      ondragover="empDragOver(event,${o.id})"
+      ondrop="empDragDrop(event,${o.id})"
+      ondragend="empDragEnd()"
+      style="background:var(--surface);border:1px solid var(--border);border-radius:2px;
+      display:flex;align-items:center;gap:8px;padding:10px 12px;cursor:pointer;transition:all 0.15s"
+      onclick="event.stopPropagation();_empEditId=${o.id};renderEmporioEditor()">
+      <div style="width:24px;cursor:grab;display:flex;flex-direction:column;gap:2.5px;flex-shrink:0">
+        <span style="display:block;width:14px;height:1.5px;background:var(--text-dim);border-radius:1px"></span>
+        <span style="display:block;width:14px;height:1.5px;background:var(--text-dim);border-radius:1px"></span>
+        <span style="display:block;width:14px;height:1.5px;background:var(--text-dim);border-radius:1px"></span>
+      </div>
+      <div style="flex:1;min-width:0">
+        <div style="font-family:'Cinzel',serif;font-size:11px;color:var(--text)">${o.nome}</div>
+        ${reqHtml?`<div style="font-size:8px;color:var(--text-dim);margin-top:2px">${reqHtml}</div>`:''}
+      </div>
+      <div style="font-family:'Cinzel',serif;font-size:12px;color:var(--gold);flex-shrink:0">${o.prezzo} ◈</div>
+    </div>`;
+  });
+  html += `</div>`;
+
+  html += `<button onclick="_empEditId='new';renderEmporioEditor()"
+    class="btn-ghost" style="width:100%;margin-bottom:6px">＋ Aggiungi Oggetto</button>`;
+
+  // Password change
+  html += `<div style="border-top:1px solid var(--border);padding-top:10px;margin-top:4px">
+    <div style="font-family:'Cinzel',serif;font-size:8px;letter-spacing:1px;color:var(--text-dim);text-transform:uppercase;margin-bottom:6px">Cambia Password</div>
+    <div style="display:flex;gap:6px">
+      <input type="password" id="emp-new-pwd" class="form-inp" placeholder="Nuova password..." style="flex:1">
+      <button onclick="changeEmporioPassword()" class="form-btn ok" style="padding:8px 12px;font-size:8px">✓</button>
+    </div>
+  </div>`;
+
+  el.innerHTML = html;
+}
+
+function renderEmporioForm(o){
+  const isNew = !o;
+  const reqs  = o?.requisiti || [];
+  return `
+  <div style="font-family:'Cinzel',serif;font-size:10px;color:var(--text);letter-spacing:1px;text-transform:uppercase;margin-bottom:12px">
+    ${isNew?'Nuovo Oggetto':'Modifica Oggetto'}
+  </div>
+  <div style="font-family:'Cinzel',serif;font-size:8px;letter-spacing:1px;color:var(--text-dim);text-transform:uppercase;margin-bottom:5px">Nome</div>
+  <input class="form-inp" id="emp-f-nome" value="${o?.nome||''}" placeholder="Nome oggetto..." style="margin-bottom:10px">
+
+  <div style="font-family:'Cinzel',serif;font-size:8px;letter-spacing:1px;color:var(--text-dim);text-transform:uppercase;margin-bottom:5px">Descrizione (opzionale)</div>
+  <input class="form-inp" id="emp-f-desc" value="${o?.desc||''}" placeholder="Breve descrizione..." style="margin-bottom:10px">
+
+  <div style="font-family:'Cinzel',serif;font-size:8px;letter-spacing:1px;color:var(--text-dim);text-transform:uppercase;margin-bottom:5px">Effetti ✨ (opzionale)</div>
+  <input class="form-inp" id="emp-f-effetti" value="${o?.effetti||''}" placeholder="es. Concentrazione migliorata, XP bonus..." style="margin-bottom:10px">
+
+  <div style="font-family:'Cinzel',serif;font-size:8px;letter-spacing:1px;color:var(--text-dim);text-transform:uppercase;margin-bottom:5px">Prezzo (◈)</div>
+  <div style="display:flex;align-items:center;gap:10px;margin-bottom:10px">
+    <div class="ctrl-btn" onclick="adjEmpPrezzo(-50)">−</div>
+    <input class="form-inp" type="number" id="emp-f-prezzo" value="${o?.prezzo||100}"
+      style="flex:1;text-align:center;font-family:'Cinzel',serif;font-size:18px;color:var(--gold)"
+      oninput="document.getElementById('emp-f-prezzo').value=Math.max(1,+this.value)">
+    <div class="ctrl-btn" onclick="adjEmpPrezzo(+50)">+</div>
+  </div>
+
+  <div style="font-family:'Cinzel',serif;font-size:8px;letter-spacing:1px;color:var(--text-dim);text-transform:uppercase;margin-bottom:6px">Requisiti</div>
+  <div style="display:flex;flex-direction:column;gap:4px;margin-bottom:12px">
+    ${REQUISITI_OPTIONS.map(r=>{
+      const sel = reqs.includes(r.id);
+      return `<div onclick="toggleEmpReq('${r.id}')" id="emp-req-${r.id}"
+        style="display:flex;align-items:center;gap:10px;padding:8px 12px;cursor:pointer;border-radius:2px;
+        background:${sel?'rgba(201,168,76,0.08)':'var(--surface2)'};
+        border:1px solid ${sel?'var(--gold-dim)':'var(--border)'};transition:all 0.15s">
+        <span style="font-size:16px">${r.icon}</span>
+        <div style="flex:1">
+          <div style="font-family:'Cinzel',serif;font-size:10px;color:${sel?'var(--gold)':'var(--text)'}">${r.id}</div>
+          <div style="font-size:9px;color:var(--text-dim)">${r.desc}</div>
+        </div>
+        ${sel?`<span style="color:var(--gold);font-size:12px">✓</span>`:''}
+      </div>`;
+    }).join('')}
+  </div>
+
+  <div style="display:flex;gap:8px">
+    ${!isNew?`<button onclick="deleteEmpOggetto(${o.id})"
+      style="padding:9px 12px;background:none;border:1px solid var(--red-dim);border-radius:1px;
+      font-family:'Cinzel',serif;font-size:8px;color:var(--red-bright);cursor:pointer">✕</button>`:''}
+    <button onclick="_empEditId=null;renderEmporioEditor()"
+      class="form-btn no" style="flex:1;padding:9px">Annulla</button>
+    <button onclick="saveEmpOggetto(${isNew?'null':o.id})"
+      class="form-btn ok" style="flex:1;padding:9px">✓ Salva</button>
+  </div>`;
+}
+
+/* Helpers */
+function adjEmpPrezzo(d){
+  const el = document.getElementById('emp-f-prezzo');
+  if(el) el.value = Math.max(1, (+el.value||100)+d);
+}
+
+let _empReqs = [];
+function toggleEmpReq(id){
+  const el = document.getElementById('emp-req-'+id);
+  const idx = _empReqs.indexOf(id);
+  if(idx===-1){ _empReqs.push(id); if(el){ el.style.background='rgba(201,168,76,0.08)'; el.style.borderColor='var(--gold-dim)'; } }
+  else { _empReqs.splice(idx,1); if(el){ el.style.background='var(--surface2)'; el.style.borderColor='var(--border)'; } }
+}
+
+function saveEmpOggetto(id){
+  const nome  = document.getElementById('emp-f-nome')?.value?.trim();
+  if(!nome){ toast('Inserisci un nome!'); return; }
+  const prezzo   = +document.getElementById('emp-f-prezzo')?.value || 100;
+  const desc     = document.getElementById('emp-f-desc')?.value?.trim() || '';
+  const effetti  = document.getElementById('emp-f-effetti')?.value?.trim() || '';
+  // Collect current reqs from DOM
+  const reqs = REQUISITI_OPTIONS.filter(r =>
+    document.getElementById('emp-req-'+r.id)?.style.background?.includes('201')
+  ).map(r=>r.id);
+
+  if(!gameState.emporioOggetti) gameState.emporioOggetti=[];
+  if(id === null || id === 'null'){
+    const newId = Date.now();
+    gameState.emporioOggetti.push({id:newId,nome,prezzo,desc,effetti,requisiti:reqs,priorita:gameState.emporioOggetti.length,acquistato:false,dataAcquisto:null,prezzoAcquisto:null});
+  } else {
+    const o = gameState.emporioOggetti.find(x=>x.id===id);
+    if(o){ Object.assign(o,{nome,prezzo,desc,effetti,requisiti:reqs}); }
+  }
+  saveAll(); _empEditId=null; renderEmporioEditor(); renderEmporio();
+  toast(`✓ "${nome}" salvato`);
+}
+
+function deleteEmpOggetto(id){
+  if(!confirm('Eliminare questo oggetto?')) return;
+  gameState.emporioOggetti = (gameState.emporioOggetti||[]).filter(x=>x.id!==id);
+  saveAll(); _empEditId=null; renderEmporioEditor(); renderEmporio();
+  toast('Oggetto eliminato');
+}
+
+function changeEmporioPassword(){
+  const pwd = document.getElementById('emp-new-pwd')?.value?.trim();
+  if(!pwd){ toast('Inserisci una password!'); return; }
+  cfg.emporioPassword = pwd;
+  saveAll(); toast('✓ Password cambiata');
+}
+
+/* Drag & drop per riordino nel pannello privato */
+function empDragStart(e,id){ _empDragSrcId=id; e.dataTransfer.effectAllowed='move'; }
+function empDragOver(e,id){ e.preventDefault(); e.dataTransfer.dropEffect='move'; }
+function empDragDrop(e,id){
+  e.preventDefault();
+  if(_empDragSrcId===id) return;
+  const oggetti=[...(gameState.emporioOggetti||[])].sort((a,b)=>(a.priorita||0)-(b.priorita||0));
+  const si=oggetti.findIndex(x=>x.id===_empDragSrcId);
+  const ti=oggetti.findIndex(x=>x.id===id);
+  if(si<0||ti<0) return;
+  const [moved]=oggetti.splice(si,1); oggetti.splice(ti,0,moved);
+  oggetti.forEach((o,i)=>{ const orig=gameState.emporioOggetti.find(x=>x.id===o.id); if(orig) orig.priorita=i; });
+  saveAll(); renderEmporioEditor(); renderEmporio();
+}
+function empDragEnd(){ _empDragSrcId=null; }
+
+/* ════════════════════════════════════════════════
+   NANNA & SVEGLIA
+════════════════════════════════════════════════ */
+
+function toggleNanna(){
+  if(gameState.nannaOn){
+    // Erano in modalità nanna → si svegliano → apri popup sveglia
+    openSvegliaOverlay();
+  } else {
+    // Vanno a dormire
+    gameState.nannaOn = true;
+    saveAll();
+    updateNannaBtn();
+    toast('🌙 Buona notte!');
+  }
+}
+
+function updateNannaBtn(){
+  const btn = document.getElementById('nanna-btn');
+  if(!btn) return;
+  if(gameState.nannaOn){
+    btn.textContent = '🌙 Dormendo';
+    btn.style.background = 'rgba(107,63,160,0.15)';
+    btn.style.borderColor = '#3a1a3a';
+    btn.style.color = 'var(--purple-light)';
+  } else {
+    btn.textContent = '🌙 Nanna';
+    btn.style.background = 'transparent';
+    btn.style.borderColor = 'var(--border)';
+    btn.style.color = 'var(--text-dim)';
+  }
+}
+
+let _svegliaOre = 7.5;
+
+function openSvegliaOverlay(){
+  const ov = document.getElementById('sveglia-overlay');
+  const pn = document.getElementById('sveglia-panel');
+  const bg = document.getElementById('sveglia-bg');
+  if(!ov) return;
+  ov.style.pointerEvents = 'all';
+  bg.style.background = 'rgba(0,0,0,0.85)';
+  pn.style.transform = 'scale(1)';
+  pn.style.opacity = '1';
+
+  // Pre-fill ora sveglia con ora attuale
+  const now = new Date();
+  const hh  = String(now.getHours()).padStart(2,'0');
+  const mm  = String(now.getMinutes()).padStart(2,'0');
+  const oraEl = document.getElementById('sveglia-ora');
+  if(oraEl) oraEl.value = `${hh}:${mm}`;
+
+  // Pre-fill ore dormite
+  _svegliaOre = 7.5;
+  const oreEl = document.getElementById('sveglia-ore-val');
+  if(oreEl) oreEl.textContent = _svegliaOre;
+}
+
+function closeSvegliaOverlay(){
+  const ov = document.getElementById('sveglia-overlay');
+  const pn = document.getElementById('sveglia-panel');
+  const bg = document.getElementById('sveglia-bg');
+  if(!ov) return;
+  pn.style.transform = 'scale(0.9)';
+  pn.style.opacity = '0';
+  bg.style.background = 'rgba(0,0,0,0)';
+  setTimeout(()=>{ ov.style.pointerEvents = 'none'; }, 300);
+}
+
+function adjSvegliaOre(d){
+  _svegliaOre = Math.max(0, Math.min(16, _svegliaOre + d));
+  const el = document.getElementById('sveglia-ore-val');
+  if(el) el.textContent = _svegliaOre;
+}
+
+function confirmSveglia(){
+  const ora  = document.getElementById('sveglia-ora')?.value || '07:00';
+  const ore  = _svegliaOre;
+
+  // Nuova giornata: reset valori locanda
+  const oggi = new Date().toISOString().slice(0,10);
+  if(gameState.giornoCorrente && gameState.giornoCorrente !== oggi){
+    // Salva storico ieri prima del reset
+    salvaGiornataStorico();
+    resetGiornoLocanda();
+  }
+
+  // Imposta sveglia e ore dormite
+  gameState.oraSveglia   = ora;
+  gameState.giornoCorrente = oggi;
+  gameState.locanda.oreSonno = ore;
+  gameState.nannaOn = false;
+
+  // Calcola NRG base da sonno
+  const nrgBase = calcNrgBase(ore);
+  gameState.nrgBaseDiOggi = nrgBase;
+  cfg.nrg = Math.min(cfg.nrgMax, nrgBase + (cfg.nrg||0));
+
+  saveAll();
+  updateNannaBtn();
+  closeSvegliaOverlay();
+  renderLocanda();
+  renderNrgHistory();
+  updateHUD();
+  toast(`🌅 Buongiorno! Sveglia alle ${ora} · ${ore}h di sonno · NRG base: ${nrgBase}`, 3500);
+}
+
+/* Controlla all'avvio se bisogna mostrare il popup sveglia */
+function checkNannaState(){
+  updateNannaBtn();
+  // Se nannaOn=true e il giorno è cambiato → mostra sveglia automaticamente
+  const oggi = new Date().toISOString().slice(0,10);
+  if(gameState.nannaOn && gameState.giornoCorrente && gameState.giornoCorrente !== oggi){
+    setTimeout(openSvegliaOverlay, 500);
+  }
+}
+
 document.addEventListener('DOMContentLoaded', ()=>{
   tickDisordine();
   startNrgTick();
   updateHUD();
   renderAll();
   checkSleepAlert();
+  checkNannaState();    // controlla stato nanna/sveglia
   checkNuovoGiorno();   // mostra morning sheet se è un nuovo giorno
 });
 </script>
@@ -6392,47 +8111,39 @@ document.addEventListener('DOMContentLoaded', ()=>{
 <div class="sheet-ov" id="sheet-morning" onclick="closeMorningSheet(event)">
   <div class="sheet-pan" id="morning-pan">
     <div class="sh-handle"></div>
-    <div style="text-align:center;margin-bottom:16px">
-      <div style="font-size:32px;margin-bottom:6px">🌅</div>
+    <div style="text-align:center;margin-bottom:20px">
+      <div style="font-size:36px;margin-bottom:6px">🌅</div>
       <div class="sh-title">Buongiorno</div>
-      <div class="sh-sub">Dichiara le ore dormite stanotte per calcolare la tua energia di oggi</div>
+      <div class="sh-sub">Come hai dormito?</div>
     </div>
+
+    <!-- Ora di sveglia -->
+    <div style="font-family:'Cinzel',serif;font-size:8px;letter-spacing:2px;color:var(--text-dim);text-transform:uppercase;margin-bottom:6px">⏰ Ora di Sveglia</div>
+    <input type="time" id="morning-ora-sveglia" class="form-inp"
+      style="text-align:center;font-family:'Cinzel',serif;font-size:20px;margin-bottom:20px">
 
     <!-- Ore dormite -->
-    <div style="background:var(--surface2);border:1px solid var(--border);border-radius:2px;padding:14px 16px;margin-bottom:12px">
-      <div style="font-family:'Cinzel',serif;font-size:9px;letter-spacing:2px;color:var(--text-dim);margin-bottom:10px;text-transform:uppercase">🌙 Ore Dormite Stanotte</div>
-      <div style="display:flex;align-items:center;justify-content:center;gap:16px">
-        <div class="ctrl-btn" style="width:36px;height:36px;font-size:20px" onclick="morningAdj('ore',-0.5)">−</div>
-        <div style="text-align:center">
-          <div id="morning-ore-val" style="font-family:'Cinzel',serif;font-size:36px;color:var(--nrg-color);line-height:1">7.0</div>
-          <div style="font-family:'Cinzel',serif;font-size:9px;color:var(--text-dim);letter-spacing:1px">ore</div>
-        </div>
-        <div class="ctrl-btn" style="width:36px;height:36px;font-size:20px" onclick="morningAdj('ore',+0.5)">+</div>
+    <div style="font-family:'Cinzel',serif;font-size:8px;letter-spacing:2px;color:var(--text-dim);text-transform:uppercase;margin-bottom:8px">🌙 Ore Dormite</div>
+    <div style="display:flex;align-items:center;justify-content:center;gap:20px;margin-bottom:28px">
+      <div class="ctrl-btn" style="width:44px;height:44px;font-size:22px" onclick="morningAdj('ore',-0.5)">−</div>
+      <div style="text-align:center">
+        <div id="morning-ore-val" style="font-family:'Cinzel',serif;font-size:48px;color:var(--nrg-color);line-height:1">7.0</div>
+        <div style="font-family:'Cinzel',serif;font-size:9px;color:var(--text-dim);letter-spacing:1px;margin-top:4px">ore</div>
       </div>
+      <div class="ctrl-btn" style="width:44px;height:44px;font-size:22px" onclick="morningAdj('ore',+0.5)">+</div>
     </div>
 
-    <!-- Preview NRG -->
-    <div id="morning-nrg-preview" style="background:var(--surface);border:1px solid var(--border);border-radius:2px;padding:12px 14px;margin-bottom:12px">
-      <div style="font-family:'Cinzel',serif;font-size:8px;letter-spacing:2px;color:var(--text-dim);margin-bottom:8px;text-transform:uppercase">⚡ Energia Stimata di Oggi</div>
-      <div id="morning-nrg-bar-wrap" style="margin-bottom:6px">
-        <div style="height:10px;background:var(--surface3);border-radius:2px;overflow:hidden">
-          <div id="morning-nrg-bar" style="height:100%;width:70%;background:var(--nrg-color);border-radius:2px;transition:width 0.5s"></div>
-        </div>
-      </div>
-      <div style="display:flex;justify-content:space-between;align-items:center">
-        <div id="morning-nrg-num" style="font-family:'Cinzel',serif;font-size:26px;color:var(--nrg-color)">70</div>
-        <div id="morning-nrg-breakdown" style="font-size:9px;color:var(--text-dim);text-align:right;line-height:1.6"></div>
-      </div>
-    </div>
-
-    <!-- Dati ieri (opzionale, pre-compilati se già dichiarati) -->
-    <div style="background:var(--surface2);border:1px solid var(--border);border-radius:2px;padding:12px 14px;margin-bottom:14px">
-      <div style="font-family:'Cinzel',serif;font-size:8px;letter-spacing:2px;color:var(--text-dim);margin-bottom:8px;text-transform:uppercase">📅 Dati di Ieri (se non ancora confermati)</div>
+    <!-- Hidden fields mantenuti per compatibilità JS -->
+    <div style="display:none">
       <div id="morning-ieri-check"></div>
+      <div id="morning-nrg-preview"></div>
+      <div id="morning-nrg-bar-wrap"><div id="morning-nrg-bar"></div></div>
+      <div id="morning-nrg-num"></div>
+      <div id="morning-nrg-breakdown"></div>
     </div>
 
-    <button class="btn-main" onclick="confirmMorning()" style="padding:12px;font-size:10px;letter-spacing:2px">
-      ⚡ Inizia la Giornata
+    <button class="btn-main" onclick="confirmMorning()" style="padding:13px;font-size:10px;letter-spacing:2px">
+      🌅 Inizia la Giornata
     </button>
     <button onclick="closeMorningSheet()" style="width:100%;margin-top:8px;padding:8px;background:none;border:none;font-family:'Cinzel',serif;font-size:8px;letter-spacing:1px;color:var(--text-dim);cursor:pointer;text-transform:uppercase">
       Salta per ora
@@ -6441,29 +8152,64 @@ document.addEventListener('DOMContentLoaded', ()=>{
 </div>
 
 
-<!-- DIARIO OVERLAY -->
-<div id="diario-overlay" style="position:fixed;inset:0;z-index:180;pointer-events:none;display:flex;flex-direction:column;justify-content:flex-end;align-items:center">
-  <div id="diario-bg" onclick="closeDiario()" style="position:absolute;inset:0;background:rgba(0,0,0,0);transition:background 0.3s"></div>
-  <div id="diario-panel" style="position:relative;z-index:1;width:100%;max-width:480px;background:var(--bg);border-top:1px solid var(--gold-dim);border-left:1px solid var(--border);border-right:1px solid var(--border);border-radius:2px 2px 0 0;max-height:calc(94vh - 56px);overflow:hidden;transform:translateY(100%);transition:transform 0.35s cubic-bezier(0.16,1,0.3,1);display:flex;flex-direction:column">
-    <!-- Diario header -->
-    <div style="padding:14px 18px 0;flex-shrink:0">
-      <div style="text-align:center;margin-bottom:10px">
+<!-- AVATAR OVERLAY (accessibile dal Diario) -->
+<div id="avatar-overlay" style="position:fixed;inset:0;z-index:180;pointer-events:none;display:flex;flex-direction:column;justify-content:flex-end;align-items:center">
+  <div id="avatar-overlay-bg" onclick="closeAvatarOverlay()" style="position:absolute;inset:0;background:rgba(0,0,0,0);transition:background 0.3s"></div>
+  <div id="avatar-overlay-panel" style="position:relative;z-index:1;width:100%;max-width:480px;background:var(--bg);border-top:1px solid var(--gold-dim);border-left:1px solid var(--border);border-right:1px solid var(--border);border-radius:2px 2px 0 0;max-height:calc(92vh - 56px);overflow-y:auto;transform:translateY(100%);transition:transform 0.35s cubic-bezier(0.16,1,0.3,1)">
+    <div style="padding:14px 18px 32px">
+      <div style="text-align:center;margin-bottom:12px">
         <div style="width:32px;height:3px;background:var(--border);border-radius:2px;margin:0 auto"></div>
       </div>
-      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px">
-        <div style="font-family:'Cinzel',serif;font-size:16px;color:var(--gold)">📖 Diario</div>
-        <button onclick="closeDiario()" style="background:none;border:none;color:var(--text-dim);font-family:'Cinzel',serif;font-size:12px;cursor:pointer">✕</button>
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px">
+        <div>
+          <div style="font-family:'Cinzel',serif;font-size:8px;letter-spacing:2px;color:var(--text-dim);text-transform:uppercase">Il tuo Eroe</div>
+          <div style="font-family:'Cinzel',serif;font-size:18px;color:var(--gold)">🧝 Avatar</div>
+        </div>
+        <button onclick="closeAvatarOverlay()" style="background:none;border:none;color:var(--text-dim);font-family:'Cinzel',serif;font-size:14px;cursor:pointer">✕</button>
       </div>
-      <!-- Diario inner tabs -->
-      <div style="display:flex;border-bottom:1px solid var(--border)">
-        <div class="inner-tab active" id="dtab-consapevolezza" onclick="switchDiarioTab('consapevolezza')" style="font-size:7px">🪬 Consapevolezza</div>
-        <div class="inner-tab" id="dtab-saggezza"         onclick="switchDiarioTab('saggezza')"         style="font-size:7px">💬 Saggezza</div>
-        <div class="inner-tab" id="dtab-storia"           onclick="switchDiarioTab('storia')"           style="font-size:7px">📜 Storia</div>
-        <div class="inner-tab" id="dtab-titoli"           onclick="switchDiarioTab('titoli')"           style="font-size:7px">🏅 Titoli</div>
-      </div>
+      <!-- Pillars -->
+      <div class="sec-head">Pilastri</div>
+      <div id="pillars-list"></div>
+      <!-- Poteri -->
+      <div class="sec-head" style="margin-top:8px">Poteri Celesti</div>
+      <div id="poteri-list"><div class="dev-note">Nessun potere attivo. Sconfiggi un boss.</div></div>
+      <!-- Sigilli -->
+      <div class="sec-head" style="margin-top:8px">Sigilli Maledetti</div>
+      <div id="sigilli-list"><div class="dev-note">Nessun sigillo attivo.</div></div>
+      <!-- Stati -->
+      <div class="sec-head" style="margin-top:8px">Cambiamenti di Stato</div>
+      <div id="stati-list"></div>
+      <!-- Achievements -->
+      <div class="sec-head" style="margin-top:8px">Achievements</div>
+      <div id="achievements-list"><div class="dev-note">Nessun achievement ancora.</div></div>
     </div>
-    <!-- Tab contents -->
-    <div id="diario-content" style="flex:1;overflow-y:auto;padding:12px 16px 32px"></div>
+  </div>
+</div>
+
+
+<!-- SVEGLIA OVERLAY -->
+<div id="sveglia-overlay" style="position:fixed;inset:0;z-index:250;pointer-events:none;display:flex;align-items:center;justify-content:center">
+  <div id="sveglia-bg" style="position:absolute;inset:0;background:rgba(0,0,0,0);transition:background 0.3s"></div>
+  <div id="sveglia-panel" style="position:relative;z-index:1;width:90%;max-width:360px;background:var(--bg);
+    border:1px solid var(--gold-dim);border-radius:2px;padding:24px;
+    transform:scale(0.9);opacity:0;transition:all 0.3s;text-align:center">
+    <div style="font-size:32px;margin-bottom:10px">🌅</div>
+    <div style="font-family:'Cinzel',serif;font-size:16px;color:var(--gold);margin-bottom:4px">Buongiorno!</div>
+    <div style="font-size:10px;color:var(--text-dim);margin-bottom:20px">Nuova giornata — dicci come ti sei svegliato</div>
+    <!-- Ora di sveglia -->
+    <div style="font-family:'Cinzel',serif;font-size:8px;letter-spacing:1px;color:var(--text-dim);text-transform:uppercase;margin-bottom:6px">Ora di sveglia</div>
+    <input type="time" id="sveglia-ora" class="form-inp" style="text-align:center;font-family:'Cinzel',serif;font-size:16px;margin-bottom:16px">
+    <!-- Ore dormite -->
+    <div style="font-family:'Cinzel',serif;font-size:8px;letter-spacing:1px;color:var(--text-dim);text-transform:uppercase;margin-bottom:8px">Ore dormite</div>
+    <div style="display:flex;align-items:center;gap:12px;justify-content:center;margin-bottom:20px">
+      <div class="ctrl-btn" onclick="adjSvegliaOre(-0.5)" style="width:36px;height:36px;display:flex;align-items:center;justify-content:center">−</div>
+      <div style="font-family:'Cinzel',serif;font-size:28px;color:var(--nrg-color)" id="sveglia-ore-val">7.5</div>
+      <span style="font-size:12px;color:var(--text-dim)">h</span>
+      <div class="ctrl-btn" onclick="adjSvegliaOre(+0.5)" style="width:36px;height:36px;display:flex;align-items:center;justify-content:center">+</div>
+    </div>
+    <button onclick="confirmSveglia()" class="btn-main" style="width:100%;padding:12px;font-size:10px;letter-spacing:1px">
+      🌅 Inizia la Giornata
+    </button>
   </div>
 </div>
 
